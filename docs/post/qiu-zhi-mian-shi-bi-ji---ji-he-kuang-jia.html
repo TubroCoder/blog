@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
+    
+    <link rel="icon" href="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="
+# Java 集合框架核心面试知识点笔记  
+
+
+## 一、集合框架整体架构  
+Java 集合框架（Java Collections Framework, JCF）分为 **Collection**（存储单元素）和 **Map**（存储键值对）两大分支，核心接口与实现类关系如下：  
+
+
+### 1. 框架层级图（Mermaid 绘制）  
+```mermaid
+graph TD
+    A[Collection] --> B[List]
+    A --> C[Set]
+    A --> D[Queue]
+    E[Map] --> F[HashMap]
+    E[Map] --> G[TreeMap]
+    E[Map] --> H[LinkedHashMap]
+    B --> I[ArrayList]
+    B --> J[LinkedList]
+    B --> K[Vector]
+    C --> L[HashSet]
+    C --> M[LinkedHashSet]
+    C --> N[TreeSet]
+    D --> O[LinkedList]
+    D --> P[PriorityQueue]
+    D --> Q[ArrayDeque]
+```  
+
+
+## 二、List 接口：有序可重复集合  
+
+
+### 1. 核心实现类对比  
+| 类            | 底层结构       | 线程安全 | 扩容机制                  | 时间复杂度（增删/查询） | 适用场景                  |  
+|---------------|----------------|----------|---------------------------|-------------------------|---------------------------|  
+| **ArrayList** | 动态数组       | 否       | 初始容量 10，扩容 1.5 倍  | 增删（O(n)）、查询（O(1)）| 随机访问多、增删少的场景  |  
+| **LinkedList** | 双向链表       | 否       | 无（链表无固定容量）      | 增删（O(1)）、查询（O(n)）| 频繁增删、顺序访问的场景  |  
+| **Vector**     | 动态数组       | 是（`synchronized`）| 初始容量 10，扩容 2 倍（可指定增量）| 同 ArrayList             | 需线程安全但性能要求低的场景|  
+
+
+### 2. 关键源码与示例  
+
+
+#### （1）ArrayList 扩容示例  
+```java
+// JDK 1.8 ArrayList 扩容核心代码
+private void grow(int minCapacity) {
+    int oldCapacity = elementData.length;
+    int newCapacity = oldCapacity + (oldCapacity >> 1); // 1.5 倍扩容
+    if (newCapacity - minCapacity < 0)
+        newCapacity = minCapacity;
+    elementData = Arrays.copyOf(elementData, newCapacity); // 数组拷贝
+}
+
+// 使用示例
+ArrayList<Integer> list = new ArrayList<>();
+list.add(1);  // 首次添加元素时，数组从 null 扩容为 10
+list.add(2);
+// 当元素超过 10 时，触发扩容为 15（10*1.5）
+```  
+
+
+#### （2）LinkedList 双向链表结构  
+```java
+// JDK 1.8 LinkedList 节点定义
+private static class Node<E> {
+    E item;
+    Node<E> prev; // 前驱指针
+    Node<E> next; // 后继指针
+    Node(Node<E> prev, E element, Node<E> next) {
+        this.item = element;
+        this.prev = prev;
+        this.next = next;
+    }
+}
+```  
+
+
+## 三、Set 接口：无序唯一集合  
+
+
+### 1. 核心实现类对比  
+| 类                | 底层结构               | 元素特性                  | 有序性                  | 时间复杂度（增删查） |  
+|-------------------|------------------------|---------------------------|-------------------------|---------------------|  
+| **HashSet**       | HashMap（键存储元素）  | 唯一（依赖 `hashCode`+`equals`）| 无序（与插入顺序无关）  | O(1)                |  
+| **LinkedHashSet**  | LinkedHashMap（双向链表+哈希表）| 唯一，维护插入顺序（或访问顺序）| 有序（插入顺序）        | O(1)                |  
+| **TreeSet**       | TreeMap（红黑树）      | 唯一，元素需实现 `Comparable` 或自定义 `Comparator` | 有序（自然排序/自定义排序）| O(log n)            |  
+
+
+### 2. 关键特性与示例  
+
+
+#### （1）HashSet 去重原理  
+- **步骤**：计算元素 `hashCode` → 定位数组桶 → 若桶内链表/红黑树存在 `equals` 相等的元素则拒绝插入。">
+<meta property="og:title" content="求职面试笔记-集合框架">
+<meta property="og:description" content="
+# Java 集合框架核心面试知识点笔记  
+
+
+## 一、集合框架整体架构  
+Java 集合框架（Java Collections Framework, JCF）分为 **Collection**（存储单元素）和 **Map**（存储键值对）两大分支，核心接口与实现类关系如下：  
+
+
+### 1. 框架层级图（Mermaid 绘制）  
+```mermaid
+graph TD
+    A[Collection] --> B[List]
+    A --> C[Set]
+    A --> D[Queue]
+    E[Map] --> F[HashMap]
+    E[Map] --> G[TreeMap]
+    E[Map] --> H[LinkedHashMap]
+    B --> I[ArrayList]
+    B --> J[LinkedList]
+    B --> K[Vector]
+    C --> L[HashSet]
+    C --> M[LinkedHashSet]
+    C --> N[TreeSet]
+    D --> O[LinkedList]
+    D --> P[PriorityQueue]
+    D --> Q[ArrayDeque]
+```  
+
+
+## 二、List 接口：有序可重复集合  
+
+
+### 1. 核心实现类对比  
+| 类            | 底层结构       | 线程安全 | 扩容机制                  | 时间复杂度（增删/查询） | 适用场景                  |  
+|---------------|----------------|----------|---------------------------|-------------------------|---------------------------|  
+| **ArrayList** | 动态数组       | 否       | 初始容量 10，扩容 1.5 倍  | 增删（O(n)）、查询（O(1)）| 随机访问多、增删少的场景  |  
+| **LinkedList** | 双向链表       | 否       | 无（链表无固定容量）      | 增删（O(1)）、查询（O(n)）| 频繁增删、顺序访问的场景  |  
+| **Vector**     | 动态数组       | 是（`synchronized`）| 初始容量 10，扩容 2 倍（可指定增量）| 同 ArrayList             | 需线程安全但性能要求低的场景|  
+
+
+### 2. 关键源码与示例  
+
+
+#### （1）ArrayList 扩容示例  
+```java
+// JDK 1.8 ArrayList 扩容核心代码
+private void grow(int minCapacity) {
+    int oldCapacity = elementData.length;
+    int newCapacity = oldCapacity + (oldCapacity >> 1); // 1.5 倍扩容
+    if (newCapacity - minCapacity < 0)
+        newCapacity = minCapacity;
+    elementData = Arrays.copyOf(elementData, newCapacity); // 数组拷贝
+}
+
+// 使用示例
+ArrayList<Integer> list = new ArrayList<>();
+list.add(1);  // 首次添加元素时，数组从 null 扩容为 10
+list.add(2);
+// 当元素超过 10 时，触发扩容为 15（10*1.5）
+```  
+
+
+#### （2）LinkedList 双向链表结构  
+```java
+// JDK 1.8 LinkedList 节点定义
+private static class Node<E> {
+    E item;
+    Node<E> prev; // 前驱指针
+    Node<E> next; // 后继指针
+    Node(Node<E> prev, E element, Node<E> next) {
+        this.item = element;
+        this.prev = prev;
+        this.next = next;
+    }
+}
+```  
+
+
+## 三、Set 接口：无序唯一集合  
+
+
+### 1. 核心实现类对比  
+| 类                | 底层结构               | 元素特性                  | 有序性                  | 时间复杂度（增删查） |  
+|-------------------|------------------------|---------------------------|-------------------------|---------------------|  
+| **HashSet**       | HashMap（键存储元素）  | 唯一（依赖 `hashCode`+`equals`）| 无序（与插入顺序无关）  | O(1)                |  
+| **LinkedHashSet**  | LinkedHashMap（双向链表+哈希表）| 唯一，维护插入顺序（或访问顺序）| 有序（插入顺序）        | O(1)                |  
+| **TreeSet**       | TreeMap（红黑树）      | 唯一，元素需实现 `Comparable` 或自定义 `Comparator` | 有序（自然排序/自定义排序）| O(log n)            |  
+
+
+### 2. 关键特性与示例  
+
+
+#### （1）HashSet 去重原理  
+- **步骤**：计算元素 `hashCode` → 定位数组桶 → 若桶内链表/红黑树存在 `equals` 相等的元素则拒绝插入。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji---ji-he-kuang-jia.html">
+<meta property="og:image" content="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true">
+<title>求职面试笔记-集合框架</title>
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
+
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+.copy-feedback {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    color: var(--color-fg-on-emphasis);
+    background-color: var(--color-fg-muted);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">求职面试笔记-集合框架</h1>
+<div class="title-right">
+    <a href="https://TubroCoder.github.io/blog" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/TubroCoder/blog/issues/14" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><h1>Java 集合框架核心面试知识点笔记</h1>
+<h2>一、集合框架整体架构</h2>
+<p>Java 集合框架（Java Collections Framework, JCF）分为 <strong>Collection</strong>（存储单元素）和 <strong>Map</strong>（存储键值对）两大分支，核心接口与实现类关系如下：</p>
+<h3>1. 框架层级图（Mermaid 绘制）</h3>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">TD</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Collection<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>List<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">A</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Set<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">A</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Queue<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">E</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Map<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">F</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>HashMap<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">E</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Map<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">G</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>TreeMap<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">E</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Map<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">H</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>LinkedHashMap<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">I</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>ArrayList<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">J</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>LinkedList<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">K</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Vector<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">L</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>HashSet<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">M</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>LinkedHashSet<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">N</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>TreeSet<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">D</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">O</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>LinkedList<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">D</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">P</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>PriorityQueue<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">D</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">Q</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>ArrayDeque<span class="pl-pds"><span class="pl-sg">]</span></span></span></pre></div>
+<h2>二、List 接口：有序可重复集合</h2>
+<h3>1. 核心实现类对比</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>类</th>
+<th>底层结构</th>
+<th>线程安全</th>
+<th>扩容机制</th>
+<th>时间复杂度（增删/查询）</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ArrayList</strong></td>
+<td>动态数组</td>
+<td>否</td>
+<td>初始容量 10，扩容 1.5 倍</td>
+<td>增删（O(n)）、查询（O(1)）</td>
+<td>随机访问多、增删少的场景</td>
+</tr>
+<tr>
+<td><strong>LinkedList</strong></td>
+<td>双向链表</td>
+<td>否</td>
+<td>无（链表无固定容量）</td>
+<td>增删（O(1)）、查询（O(n)）</td>
+<td>频繁增删、顺序访问的场景</td>
+</tr>
+<tr>
+<td><strong>Vector</strong></td>
+<td>动态数组</td>
+<td>是（<code class="notranslate">synchronized</code>）</td>
+<td>初始容量 10，扩容 2 倍（可指定增量）</td>
+<td>同 ArrayList</td>
+<td>需线程安全但性能要求低的场景</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 关键源码与示例</h3>
+<h4>（1）ArrayList 扩容示例</h4>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-c">// JDK 1.8 ArrayList 扩容核心代码</span>
+<span class="pl-k">private</span> <span class="pl-smi">void</span> <span class="pl-en">grow</span>(<span class="pl-smi">int</span> <span class="pl-s1">minCapacity</span>) {
+    <span class="pl-smi">int</span> <span class="pl-s1">oldCapacity</span> = <span class="pl-s1">elementData</span>.<span class="pl-s1">length</span>;
+    <span class="pl-smi">int</span> <span class="pl-s1">newCapacity</span> = <span class="pl-s1">oldCapacity</span> + (<span class="pl-s1">oldCapacity</span> &gt;&gt; <span class="pl-c1">1</span>); <span class="pl-c">// 1.5 倍扩容</span>
+    <span class="pl-k">if</span> (<span class="pl-s1">newCapacity</span> - <span class="pl-s1">minCapacity</span> &lt; <span class="pl-c1">0</span>)
+        <span class="pl-s1">newCapacity</span> = <span class="pl-s1">minCapacity</span>;
+    <span class="pl-s1">elementData</span> = <span class="pl-smi">Arrays</span>.<span class="pl-en">copyOf</span>(<span class="pl-s1">elementData</span>, <span class="pl-s1">newCapacity</span>); <span class="pl-c">// 数组拷贝</span>
+}
+
+<span class="pl-c">// 使用示例</span>
+<span class="pl-smi">ArrayList</span>&lt;<span class="pl-smi">Integer</span>&gt; <span class="pl-s1">list</span> = <span class="pl-k">new</span> <span class="pl-smi">ArrayList</span>&lt;&gt;();
+<span class="pl-s1">list</span>.<span class="pl-en">add</span>(<span class="pl-c1">1</span>);  <span class="pl-c">// 首次添加元素时，数组从 null 扩容为 10</span>
+<span class="pl-s1">list</span>.<span class="pl-en">add</span>(<span class="pl-c1">2</span>);
+<span class="pl-c">// 当元素超过 10 时，触发扩容为 15（10*1.5）</span></pre></div>
+<h4>（2）LinkedList 双向链表结构</h4>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-c">// JDK 1.8 LinkedList 节点定义</span>
+<span class="pl-k">private</span> <span class="pl-k">static</span> <span class="pl-k">class</span> <span class="pl-smi">Node</span>&lt;<span class="pl-smi">E</span>&gt; {
+    <span class="pl-smi">E</span> <span class="pl-s1">item</span>;
+    <span class="pl-smi">Node</span>&lt;<span class="pl-smi">E</span>&gt; <span class="pl-s1">prev</span>; <span class="pl-c">// 前驱指针</span>
+    <span class="pl-smi">Node</span>&lt;<span class="pl-smi">E</span>&gt; <span class="pl-s1">next</span>; <span class="pl-c">// 后继指针</span>
+    <span class="pl-smi">Node</span>(<span class="pl-smi">Node</span>&lt;<span class="pl-smi">E</span>&gt; <span class="pl-s1">prev</span>, <span class="pl-smi">E</span> <span class="pl-s1">element</span>, <span class="pl-smi">Node</span>&lt;<span class="pl-smi">E</span>&gt; <span class="pl-s1">next</span>) {
+        <span class="pl-smi">this</span>.<span class="pl-s1">item</span> = <span class="pl-s1">element</span>;
+        <span class="pl-smi">this</span>.<span class="pl-s1">prev</span> = <span class="pl-s1">prev</span>;
+        <span class="pl-smi">this</span>.<span class="pl-s1">next</span> = <span class="pl-s1">next</span>;
+    }
+}</pre></div>
+<h2>三、Set 接口：无序唯一集合</h2>
+<h3>1. 核心实现类对比</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>类</th>
+<th>底层结构</th>
+<th>元素特性</th>
+<th>有序性</th>
+<th>时间复杂度（增删查）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HashSet</strong></td>
+<td>HashMap（键存储元素）</td>
+<td>唯一（依赖 <code class="notranslate">hashCode</code>+<code class="notranslate">equals</code>）</td>
+<td>无序（与插入顺序无关）</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><strong>LinkedHashSet</strong></td>
+<td>LinkedHashMap（双向链表+哈希表）</td>
+<td>唯一，维护插入顺序（或访问顺序）</td>
+<td>有序（插入顺序）</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><strong>TreeSet</strong></td>
+<td>TreeMap（红黑树）</td>
+<td>唯一，元素需实现 <code class="notranslate">Comparable</code> 或自定义 <code class="notranslate">Comparator</code></td>
+<td>有序（自然排序/自定义排序）</td>
+<td>O(log n)</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 关键特性与示例</h3>
+<h4>（1）HashSet 去重原理</h4>
+<ul>
+<li><strong>步骤</strong>：计算元素 <code class="notranslate">hashCode</code> → 定位数组桶 → 若桶内链表/红黑树存在 <code class="notranslate">equals</code> 相等的元素则拒绝插入。</li>
+<li><strong>注意</strong>：若重写 <code class="notranslate">equals</code> 必须重写 <code class="notranslate">hashCode</code>（否则可能导致重复元素）。</li>
+</ul>
+<h4>（2）TreeSet 自定义排序示例</h4>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-c">// 按字符串长度降序排序的 TreeSet</span>
+<span class="pl-smi">TreeSet</span>&lt;<span class="pl-smi">String</span>&gt; <span class="pl-s1">set</span> = <span class="pl-k">new</span> <span class="pl-smi">TreeSet</span>&lt;&gt;((<span class="pl-s1">a</span>, <span class="pl-s1">b</span>) -&gt; {
+    <span class="pl-smi">int</span> <span class="pl-s1">lenCompare</span> = <span class="pl-smi">Integer</span>.<span class="pl-en">compare</span>(<span class="pl-s1">b</span>.<span class="pl-en">length</span>(), <span class="pl-s1">a</span>.<span class="pl-en">length</span>());
+    <span class="pl-k">return</span> <span class="pl-s1">lenCompare</span> != <span class="pl-c1">0</span> ? <span class="pl-s1">lenCompare</span> : <span class="pl-s1">a</span>.<span class="pl-en">compareTo</span>(<span class="pl-s1">b</span>); <span class="pl-c">// 长度相同则按字典序</span>
+});
+<span class="pl-s1">set</span>.<span class="pl-en">add</span>(<span class="pl-s">"apple"</span>);  <span class="pl-c">// 长度 5</span>
+<span class="pl-s1">set</span>.<span class="pl-en">add</span>(<span class="pl-s">"banana"</span>); <span class="pl-c">// 长度 6</span>
+<span class="pl-s1">set</span>.<span class="pl-en">add</span>(<span class="pl-s">"grape"</span>);  <span class="pl-c">// 长度 5</span>
+<span class="pl-smi">System</span>.<span class="pl-s1">out</span>.<span class="pl-en">println</span>(<span class="pl-s1">set</span>); <span class="pl-c">// 输出 [banana, apple, grape]（按长度降序）</span></pre></div>
+<h2>四、Queue 接口：队列与双端队列</h2>
+<h3>1. 核心实现类对比</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>类</th>
+<th>底层结构</th>
+<th>特性</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LinkedList</strong></td>
+<td>双向链表</td>
+<td>支持 <code class="notranslate">Queue</code>（FIFO）和 <code class="notranslate">Deque</code>（双端）</td>
+<td>简单队列/双端队列场景</td>
+</tr>
+<tr>
+<td><strong>PriorityQueue</strong></td>
+<td>小根堆（数组）</td>
+<td>按自然顺序或 <code class="notranslate">Comparator</code> 排序的优先队列</td>
+<td>任务调度（如优先级高的先执行）</td>
+</tr>
+<tr>
+<td><strong>ArrayDeque</strong></td>
+<td>循环数组</td>
+<td>双端队列，无容量限制（动态扩容）</td>
+<td>高效的双端操作（替代 <code class="notranslate">Stack</code>）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 关键方法对比（Queue vs Deque）</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>操作类型</th>
+<th>抛出异常（Queue）</th>
+<th>返回特殊值（Queue）</th>
+<th>双端操作（Deque）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>插入队首/队尾</td>
+<td><code class="notranslate">addFirst()</code>/<code class="notranslate">addLast()</code></td>
+<td><code class="notranslate">offerFirst()</code>/<code class="notranslate">offerLast()</code></td>
+<td>双端插入</td>
+</tr>
+<tr>
+<td>删除队首/队尾</td>
+<td><code class="notranslate">removeFirst()</code>/<code class="notranslate">removeLast()</code></td>
+<td><code class="notranslate">pollFirst()</code>/<code class="notranslate">pollLast()</code></td>
+<td>双端删除</td>
+</tr>
+<tr>
+<td>查看队首/队尾</td>
+<td><code class="notranslate">getFirst()</code>/<code class="notranslate">getLast()</code></td>
+<td><code class="notranslate">peekFirst()</code>/<code class="notranslate">peekLast()</code></td>
+<td>双端查看</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>五、Map 接口：键值对集合</h2>
+<h3>1. 核心实现类对比</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>类</th>
+<th>底层结构</th>
+<th>线程安全</th>
+<th>有序性</th>
+<th>时间复杂度（增删查）</th>
+<th>特性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HashMap</strong></td>
+<td>数组+链表+红黑树（JDK 1.8+）</td>
+<td>否</td>
+<td>无序</td>
+<td>O(1)（平均）</td>
+<td>允许 <code class="notranslate">null</code> 键值，初始容量 16，负载因子 0.75</td>
+</tr>
+<tr>
+<td><strong>LinkedHashMap</strong></td>
+<td>哈希表+双向链表</td>
+<td>否</td>
+<td>插入顺序/访问顺序</td>
+<td>O(1)</td>
+<td>可实现 LRU 缓存（<code class="notranslate">accessOrder=true</code>）</td>
+</tr>
+<tr>
+<td><strong>TreeMap</strong></td>
+<td>红黑树</td>
+<td>否</td>
+<td>键的自然排序/自定义排序</td>
+<td>O(log n)</td>
+<td>支持范围查询（如 <code class="notranslate">subMap()</code>）</td>
+</tr>
+<tr>
+<td><strong>Hashtable</strong></td>
+<td>数组+链表</td>
+<td>是（<code class="notranslate">synchronized</code>）</td>
+<td>无序</td>
+<td>O(1)</td>
+<td>不允许 <code class="notranslate">null</code> 键值，已被 <code class="notranslate">ConcurrentHashMap</code> 替代</td>
+</tr>
+<tr>
+<td><strong>ConcurrentHashMap</strong></td>
+<td>数组+链表+红黑树（JDK 1.8+）</td>
+<td>是（CAS+synchronized）</td>
+<td>无序</td>
+<td>O(1)（平均）</td>
+<td>高并发场景，分段锁（1.7）→ 节点锁（1.8）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 关键原理与示例</h3>
+<h4>（1）HashMap 底层结构（JDK 1.8+）</h4>
+<ul>
+<li><strong>数组（桶）</strong>：初始大小 16，扩容为 2 的幂次（如 16→32→64...）；</li>
+<li><strong>链表</strong>：当桶内元素 ≥8 且数组长度 ≥64 时，链表转换为红黑树（时间复杂度从 O(n) 优化为 O(log n)）；</li>
+<li><strong>红黑树</strong>：当树节点 ≤6 时，退化为链表（避免频繁转换）。</li>
+</ul>
+<h4>（2）HashMap 插入流程图（Mermaid）</h4>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">TD</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>计算 key 的 hash<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>定位数组桶索引（hash &amp; (n-1))<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">{</span></span>桶为空?<span class="pl-pds"><span class="pl-sg">}</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">是</span><span class="pl-k">|</span> <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>直接插入节点<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">否</span><span class="pl-k">|</span> <span class="pl-ent">E</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">{</span></span>头节点 key 相等?<span class="pl-pds"><span class="pl-sg">}</span></span></span>
+    <span class="pl-ent">E</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">是</span><span class="pl-k">|</span> <span class="pl-ent">F</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>覆盖 value<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">E</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">否</span><span class="pl-k">|</span> <span class="pl-ent">G</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">{</span></span>当前是红黑树?<span class="pl-pds"><span class="pl-sg">}</span></span></span>
+    <span class="pl-ent">G</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">是</span><span class="pl-k">|</span> <span class="pl-ent">H</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>树中插入节点<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">G</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">否</span><span class="pl-k">|</span> <span class="pl-ent">I</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>遍历链表<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">I</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">J</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">{</span></span>链表长度 ≥8 且数组长度 ≥64?<span class="pl-pds"><span class="pl-sg">}</span></span></span>
+    <span class="pl-ent">J</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">是</span><span class="pl-k">|</span> <span class="pl-ent">K</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>链表转红黑树并插入<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">J</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">否</span><span class="pl-k">|</span> <span class="pl-ent">L</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>链表尾部插入节点<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">L</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">M</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">{</span></span>插入后是否超过负载因子?<span class="pl-pds"><span class="pl-sg">}</span></span></span>
+    <span class="pl-ent">M</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">是</span><span class="pl-k">|</span> <span class="pl-ent">N</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>扩容（2 倍）并重新哈希<span class="pl-pds"><span class="pl-sg">]</span></span></span></pre></div>
+<h4>（3）ConcurrentHashMap 线程安全示例（JDK 1.8）</h4>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-c">// 高并发场景下的线程安全 Map</span>
+<span class="pl-smi">ConcurrentHashMap</span>&lt;<span class="pl-smi">String</span>, <span class="pl-smi">Integer</span>&gt; <span class="pl-s1">map</span> = <span class="pl-k">new</span> <span class="pl-smi">ConcurrentHashMap</span>&lt;&gt;();
+
+<span class="pl-c">// 原子操作：若 key 不存在则插入，否则返回现有值</span>
+<span class="pl-s1">map</span>.<span class="pl-en">putIfAbsent</span>(<span class="pl-s">"apple"</span>, <span class="pl-c1">10</span>); 
+
+<span class="pl-c">// 多线程累加计数（CAS 无锁操作）</span>
+<span class="pl-s1">map</span>.<span class="pl-en">compute</span>(<span class="pl-s">"apple"</span>, (<span class="pl-s1">k</span>, <span class="pl-s1">v</span>) -&gt; <span class="pl-s1">v</span> == <span class="pl-c1">null</span> ? <span class="pl-c1">1</span> : <span class="pl-s1">v</span> + <span class="pl-c1">1</span>);</pre></div>
+<h2>六、高频面试问题总结</h2>
+<h3>1. ArrayList 与 LinkedList 的区别？</h3>
+<ul>
+<li><strong>底层结构</strong>：ArrayList 是动态数组，LinkedList 是双向链表；</li>
+<li><strong>查询效率</strong>：ArrayList 随机访问 O(1)，LinkedList 需遍历 O(n)；</li>
+<li><strong>增删效率</strong>：ArrayList 尾部增删 O(1)，中间增删需移动元素 O(n)；LinkedList 任意位置增删 O(1)（仅调整指针）；</li>
+<li><strong>内存占用</strong>：ArrayList 预分配空间（可能浪费），LinkedList 每个节点额外存储前后指针（更占内存）。</li>
+</ul>
+<h3>2. HashMap 与 Hashtable 的区别？</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>HashMap</th>
+<th>Hashtable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>线程安全</td>
+<td>否（非线程安全）</td>
+<td>是（<code class="notranslate">synchronized</code> 全局锁）</td>
+</tr>
+<tr>
+<td>null 键值</td>
+<td>允许（1 个 null 键，多个 null 值）</td>
+<td>不允许（<code class="notranslate">NullPointerException</code>）</td>
+</tr>
+<tr>
+<td>初始容量/扩容</td>
+<td>16（2 的幂次），扩容 2 倍</td>
+<td>11，扩容 2n+1</td>
+</tr>
+<tr>
+<td>推荐场景</td>
+<td>单线程/低并发场景</td>
+<td>已淘汰，高并发用 <code class="notranslate">ConcurrentHashMap</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>3. 如何实现一个线程安全的 List？</h3>
+<ul>
+<li><strong>Vector</strong>：所有方法 <code class="notranslate">synchronized</code>（性能差）；</li>
+<li><strong>Collections.synchronizedList()</strong>：包装普通 List（外部加锁，迭代时需手动同步）；</li>
+<li><strong>CopyOnWriteArrayList</strong>：写时复制（<code class="notranslate">ReentrantLock</code> 加锁，读无锁，适合读多写少）。</li>
+</ul>
+<h3>4. 为什么 HashSet 是无序的？如何实现有序 Set？</h3>
+<ul>
+<li><strong>无序原因</strong>：HashSet 基于 HashMap，元素存储位置由 <code class="notranslate">hashCode</code> 计算的桶索引决定，与插入顺序无关；</li>
+<li><strong>有序实现</strong>：
+<ul>
+<li>插入顺序：用 <code class="notranslate">LinkedHashSet</code>（基于 <code class="notranslate">LinkedHashMap</code>，维护插入顺序）；</li>
+<li>排序顺序：用 <code class="notranslate">TreeSet</code>（基于红黑树，按 <code class="notranslate">Comparable</code> 或 <code class="notranslate">Comparator</code> 排序）。</li>
+</ul>
+</li>
+</ul>
+<h3>5. fail-fast 与 fail-safe 的区别？</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>fail-fast（快速失败）</th>
+<th>fail-safe（安全失败）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>触发场景</td>
+<td>遍历集合时修改结构（增删元素）</td>
+<td>遍历拷贝的集合（如 <code class="notranslate">CopyOnWriteArrayList</code>）</td>
+</tr>
+<tr>
+<td>异常</td>
+<td>抛出 <code class="notranslate">ConcurrentModificationException</code></td>
+<td>无异常（遍历原集合的快照）</td>
+</tr>
+<tr>
+<td>典型集合</td>
+<td>ArrayList、HashMap</td>
+<td>CopyOnWriteArrayList、<code class="notranslate">ConcurrentHashMap</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>七、总结：核心考点速记</h2>
+<ul>
+<li><strong>List</strong>：关注底层数组 vs 链表的特性差异，扩容机制（ArrayList 1.5 倍，Vector 2 倍）；</li>
+<li><strong>Set</strong>：HashSet 依赖 <code class="notranslate">hashCode</code>+<code class="notranslate">equals</code>，TreeSet 依赖排序（<code class="notranslate">Comparable</code>/<code class="notranslate">Comparator</code>）；</li>
+<li><strong>Queue</strong>：优先队列（PriorityQueue）基于堆结构，双端队列（ArrayDeque）替代 <code class="notranslate">Stack</code>；</li>
+<li><strong>Map</strong>：HashMap 红黑树优化（JDK 1.8），ConcurrentHashMap 的锁升级（CAS→synchronized）；</li>
+<li><strong>线程安全</strong>：优先选择 <code class="notranslate">ConcurrentHashMap</code>/<code class="notranslate">CopyOnWriteArrayList</code>，避免 <code class="notranslate">Hashtable</code>/<code class="notranslate">Vector</code>。</li>
+</ul>
+<p>通过本文的梳理，可系统掌握 Java 集合框架的核心实现类、底层原理及高频面试问题，结合代码示例和流程图，能有效应对集合相关的技术面试与性能调优场景。</p></div>
+<div style="font-size:small;margin-top:8px;float:right;"></div>
+
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+
+</div>
+    <div id="footer"><div id="footer1">Copyright © <span id="copyrightYear"></span> <a href="https://TubroCoder.github.io/blog">Tubro‘s blog</a></div>
+<div id="footer2">
+    <span id="runday"></span><span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a></span>
+</div>
+
+<script>
+var now=new Date();
+document.getElementById("copyrightYear").innerHTML=now.getFullYear();
+
+if(""!=""){
+    var startSite=new Date("");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+}
+</script></div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z', 'copy': 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z', 'check': 'M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","TubroCoder/blog");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const createClipboardHTML = (codeContent, additionalClasses = '') => `
+        <pre class="notranslate"><code class="notranslate">${codeContent}</code></pre>
+        <div class="clipboard-container position-absolute right-0 top-0 ${additionalClasses}">
+            <clipboard-copy class="ClipboardButton btn m-2 p-0" role="button" style="display: inherit;">
+                <svg height="16" width="16" class="octicon octicon-copy m-2"><path d="${IconList["copy"]}"></path></svg>
+                <svg height="16" width="16" class="octicon octicon-check color-fg-success m-2 d-none"><path d="${IconList["check"]}"></path></svg>
+            </clipboard-copy>
+            <div class="copy-feedback">Copied!</div>
+        </div>
+    `;
+
+    const handleCodeElements = (selector = '') => {
+        document.querySelectorAll(selector).forEach(codeElement => {
+            const codeContent = codeElement.innerHTML;
+            const newStructure = document.createElement('div');
+            newStructure.className = 'snippet-clipboard-content position-relative overflow-auto';
+            newStructure.innerHTML = createClipboardHTML(codeContent);
+
+            const parentElement = codeElement.parentElement;
+            if (selector.includes('highlight')) {
+                parentElement.insertBefore(newStructure, codeElement.nextSibling);
+                parentElement.removeChild(codeElement);
+            } else {
+                parentElement.parentElement.replaceChild(newStructure, parentElement);
+            }
+        });
+    };
+
+    handleCodeElements('pre.notranslate > code.notranslate');
+    handleCodeElements('div.highlight > pre.notranslate');
+
+    let currentFeedback = null;
+    document.querySelectorAll('clipboard-copy').forEach(copyButton => {
+        copyButton.addEventListener('click', () => {
+            const codeContent = copyButton.closest('.snippet-clipboard-content').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const copyIcon = copyButton.querySelector('.octicon-copy');
+            const checkIcon = copyButton.querySelector('.octicon-check');
+            const copyFeedback = copyButton.nextElementSibling;
+
+            if (currentFeedback && currentFeedback !== copyFeedback) {currentFeedback.style.display = 'none';}
+            currentFeedback = copyFeedback;
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copyFeedback.style.display = 'block';
+            copyButton.style.borderColor = 'var(--color-success-fg)';
+
+            setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyFeedback.style.display = 'none';
+                copyButton.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
+
+</script>
+
+
+</html>

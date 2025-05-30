@@ -1,5 +1,98 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 11:03:36 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-JVM相关</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--JVM-xiang-guan.html</link><description>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 11:07:01 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-集合框架</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji---ji-he-kuang-jia.html</link><description>
+# Java 集合框架核心面试知识点笔记  
+
+
+## 一、集合框架整体架构  
+Java 集合框架（Java Collections Framework, JCF）分为 **Collection**（存储单元素）和 **Map**（存储键值对）两大分支，核心接口与实现类关系如下：  
+
+
+### 1. 框架层级图（Mermaid 绘制）  
+```mermaid
+graph TD
+    A[Collection] --&gt; B[List]
+    A --&gt; C[Set]
+    A --&gt; D[Queue]
+    E[Map] --&gt; F[HashMap]
+    E[Map] --&gt; G[TreeMap]
+    E[Map] --&gt; H[LinkedHashMap]
+    B --&gt; I[ArrayList]
+    B --&gt; J[LinkedList]
+    B --&gt; K[Vector]
+    C --&gt; L[HashSet]
+    C --&gt; M[LinkedHashSet]
+    C --&gt; N[TreeSet]
+    D --&gt; O[LinkedList]
+    D --&gt; P[PriorityQueue]
+    D --&gt; Q[ArrayDeque]
+```  
+
+
+## 二、List 接口：有序可重复集合  
+
+
+### 1. 核心实现类对比  
+| 类            | 底层结构       | 线程安全 | 扩容机制                  | 时间复杂度（增删/查询） | 适用场景                  |  
+|---------------|----------------|----------|---------------------------|-------------------------|---------------------------|  
+| **ArrayList** | 动态数组       | 否       | 初始容量 10，扩容 1.5 倍  | 增删（O(n)）、查询（O(1)）| 随机访问多、增删少的场景  |  
+| **LinkedList** | 双向链表       | 否       | 无（链表无固定容量）      | 增删（O(1)）、查询（O(n)）| 频繁增删、顺序访问的场景  |  
+| **Vector**     | 动态数组       | 是（`synchronized`）| 初始容量 10，扩容 2 倍（可指定增量）| 同 ArrayList             | 需线程安全但性能要求低的场景|  
+
+
+### 2. 关键源码与示例  
+
+
+#### （1）ArrayList 扩容示例  
+```java
+// JDK 1.8 ArrayList 扩容核心代码
+private void grow(int minCapacity) {
+    int oldCapacity = elementData.length;
+    int newCapacity = oldCapacity + (oldCapacity &gt;&gt; 1); // 1.5 倍扩容
+    if (newCapacity - minCapacity &lt; 0)
+        newCapacity = minCapacity;
+    elementData = Arrays.copyOf(elementData, newCapacity); // 数组拷贝
+}
+
+// 使用示例
+ArrayList&lt;Integer&gt; list = new ArrayList&lt;&gt;();
+list.add(1);  // 首次添加元素时，数组从 null 扩容为 10
+list.add(2);
+// 当元素超过 10 时，触发扩容为 15（10*1.5）
+```  
+
+
+#### （2）LinkedList 双向链表结构  
+```java
+// JDK 1.8 LinkedList 节点定义
+private static class Node&lt;E&gt; {
+    E item;
+    Node&lt;E&gt; prev; // 前驱指针
+    Node&lt;E&gt; next; // 后继指针
+    Node(Node&lt;E&gt; prev, E element, Node&lt;E&gt; next) {
+        this.item = element;
+        this.prev = prev;
+        this.next = next;
+    }
+}
+```  
+
+
+## 三、Set 接口：无序唯一集合  
+
+
+### 1. 核心实现类对比  
+| 类                | 底层结构               | 元素特性                  | 有序性                  | 时间复杂度（增删查） |  
+|-------------------|------------------------|---------------------------|-------------------------|---------------------|  
+| **HashSet**       | HashMap（键存储元素）  | 唯一（依赖 `hashCode`+`equals`）| 无序（与插入顺序无关）  | O(1)                |  
+| **LinkedHashSet**  | LinkedHashMap（双向链表+哈希表）| 唯一，维护插入顺序（或访问顺序）| 有序（插入顺序）        | O(1)                |  
+| **TreeSet**       | TreeMap（红黑树）      | 唯一，元素需实现 `Comparable` 或自定义 `Comparator` | 有序（自然排序/自定义排序）| O(log n)            |  
+
+
+### 2. 关键特性与示例  
+
+
+#### （1）HashSet 去重原理  
+- **步骤**：计算元素 `hashCode` → 定位数组桶 → 若桶内链表/红黑树存在 `equals` 相等的元素则拒绝插入。</description><guid isPermaLink="true">https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji---ji-he-kuang-jia.html</guid><pubDate>Fri, 30 May 2025 11:06:32 +0000</pubDate></item><item><title>求职面试笔记-JVM相关</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--JVM-xiang-guan.html</link><description>
 # JVM 核心面试知识点笔记  
 
 
