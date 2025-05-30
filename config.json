@@ -2,5 +2,6 @@
     "title":"Tubro‘s blog",
     "subTitle":"童话是一种生活态度，仅此而已。",
     "avatarUrl":"https://github.com/TubroCoder/blog/blob/main/image.png?raw=true",
-    "GMEEK_VERSION":"last"
+    "GMEEK_VERSION":"last",
+    "singlePage":["about","link"],
 }
