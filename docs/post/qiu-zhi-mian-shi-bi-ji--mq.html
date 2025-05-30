@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
+    
+    <link rel="icon" href="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="
+# MQ（消息队列）核心面试知识点笔记  
+
+
+## 一、为什么需要 MQ？  
+
+
+### 1. 核心价值  
+消息队列（Message Queue, MQ）是分布式系统中的**异步通信中间件**，核心解决以下问题：  
+
+
+| 问题                | 场景说明                                                                 | MQ 解决方案                                                           |  
+|---------------------|--------------------------------------------------------------------------|-----------------------------------------------------------------------|  
+| **系统解耦**        | 订单系统需通知库存、物流、支付等多个系统，直接调用导致强依赖             | 订单系统只发消息到 MQ，其他系统订阅消息，互不影响                     |  
+| **异步提速**        | 用户下单需同步调用库存扣减、积分发放等耗时操作，响应时间长               | 主流程（下单）完成后，其他操作通过 MQ 异步处理，响应时间从秒级→毫秒级  |  
+| **削峰填谷**        | 秒杀活动时，短时间内请求量暴增（10万/秒），超出数据库处理能力（1万/秒）  | MQ 缓存请求（削峰），数据库按稳定速率消费（填谷）                     |  
+
+
+### 2. 典型使用场景  
+- 异步通知（如短信、邮件发送）；  
+- 日志收集（微服务日志汇总到 ELK）；  
+- 流量控制（秒杀活动的请求缓冲）；  
+- 数据同步（MySQL -binlog 通过 MQ 同步到 ES）。">
+<meta property="og:title" content="求职面试笔记-mq">
+<meta property="og:description" content="
+# MQ（消息队列）核心面试知识点笔记  
+
+
+## 一、为什么需要 MQ？  
+
+
+### 1. 核心价值  
+消息队列（Message Queue, MQ）是分布式系统中的**异步通信中间件**，核心解决以下问题：  
+
+
+| 问题                | 场景说明                                                                 | MQ 解决方案                                                           |  
+|---------------------|--------------------------------------------------------------------------|-----------------------------------------------------------------------|  
+| **系统解耦**        | 订单系统需通知库存、物流、支付等多个系统，直接调用导致强依赖             | 订单系统只发消息到 MQ，其他系统订阅消息，互不影响                     |  
+| **异步提速**        | 用户下单需同步调用库存扣减、积分发放等耗时操作，响应时间长               | 主流程（下单）完成后，其他操作通过 MQ 异步处理，响应时间从秒级→毫秒级  |  
+| **削峰填谷**        | 秒杀活动时，短时间内请求量暴增（10万/秒），超出数据库处理能力（1万/秒）  | MQ 缓存请求（削峰），数据库按稳定速率消费（填谷）                     |  
+
+
+### 2. 典型使用场景  
+- 异步通知（如短信、邮件发送）；  
+- 日志收集（微服务日志汇总到 ELK）；  
+- 流量控制（秒杀活动的请求缓冲）；  
+- 数据同步（MySQL -binlog 通过 MQ 同步到 ES）。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--mq.html">
+<meta property="og:image" content="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true">
+<title>求职面试笔记-mq</title>
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
+
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+.copy-feedback {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    color: var(--color-fg-on-emphasis);
+    background-color: var(--color-fg-muted);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">求职面试笔记-mq</h1>
+<div class="title-right">
+    <a href="https://TubroCoder.github.io/blog" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/TubroCoder/blog/issues/9" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><h1>MQ（消息队列）核心面试知识点笔记</h1>
+<h2>一、为什么需要 MQ？</h2>
+<h3>1. 核心价值</h3>
+<p>消息队列（Message Queue, MQ）是分布式系统中的<strong>异步通信中间件</strong>，核心解决以下问题：</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>问题</th>
+<th>场景说明</th>
+<th>MQ 解决方案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>系统解耦</strong></td>
+<td>订单系统需通知库存、物流、支付等多个系统，直接调用导致强依赖</td>
+<td>订单系统只发消息到 MQ，其他系统订阅消息，互不影响</td>
+</tr>
+<tr>
+<td><strong>异步提速</strong></td>
+<td>用户下单需同步调用库存扣减、积分发放等耗时操作，响应时间长</td>
+<td>主流程（下单）完成后，其他操作通过 MQ 异步处理，响应时间从秒级→毫秒级</td>
+</tr>
+<tr>
+<td><strong>削峰填谷</strong></td>
+<td>秒杀活动时，短时间内请求量暴增（10万/秒），超出数据库处理能力（1万/秒）</td>
+<td>MQ 缓存请求（削峰），数据库按稳定速率消费（填谷）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 典型使用场景</h3>
+<ul>
+<li>异步通知（如短信、邮件发送）；</li>
+<li>日志收集（微服务日志汇总到 ELK）；</li>
+<li>流量控制（秒杀活动的请求缓冲）；</li>
+<li>数据同步（MySQL -binlog 通过 MQ 同步到 ES）。</li>
+</ul>
+<h2>二、常用 MQ 框架对比</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>RabbitMQ</th>
+<th>Kafka</th>
+<th>RocketMQ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>出身</strong></td>
+<td>基于 AMQP 协议，Erlang 开发</td>
+<td>Apache 项目，Scala/Java 开发</td>
+<td>阿里开源，Java 开发（现 Apache 顶级项目）</td>
+</tr>
+<tr>
+<td><strong>吞吐量</strong></td>
+<td>万级（1w~5w msg/s）</td>
+<td>百万级（10w~100w msg/s）</td>
+<td>十万级（10w~50w msg/s）</td>
+</tr>
+<tr>
+<td><strong>消息可靠性</strong></td>
+<td>支持持久化、ACK、死信队列</td>
+<td>支持副本机制（ISR）、持久化</td>
+<td>支持多副本、同步刷盘、事务消息</td>
+</tr>
+<tr>
+<td><strong>消息顺序性</strong></td>
+<td>单队列保证顺序（多消费者需加锁）</td>
+<td>分区内严格顺序</td>
+<td>分区内严格顺序</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>金融级场景（强一致性）、小规模系统</td>
+<td>大数据领域（日志采集、流计算）</td>
+<td>电商、金融等高并发业务场景</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>三、如何保证消息不丢失？</h2>
+<h3>1. 消息丢失的三大环节</h3>
+<p>消息从生产到消费的全流程中，可能在 <strong>生产端</strong>、<strong>Broker 端</strong>、<strong>消费端</strong> 三个环节丢失。</p>
+<h4>（1）生产端丢失：消息未到达 Broker</h4>
+<p><strong>原因</strong>：网络抖动、Broker 宕机，导致消息未成功发送到 MQ。</p>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li><strong>同步确认</strong>：发送消息后，等待 Broker 返回 ACK（如 RocketMQ 的 <code class="notranslate">send</code> 方法同步等待）；</li>
+<li><strong>异步确认</strong>：发送消息后，通过回调函数监听发送结果（如 RocketMQ 的 <code class="notranslate">sendAsync</code>）；</li>
+<li><strong>事务消息</strong>（RocketMQ/Kafka）：确保本地事务与消息发送的原子性（见后文分布式事务部分）。</li>
+</ul>
+<p><strong>RocketMQ 生产端确认示例</strong>：</p>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-c">// 同步确认</span>
+<span class="pl-smi">SendResult</span> <span class="pl-s1">result</span> = <span class="pl-s1">producer</span>.<span class="pl-en">send</span>(<span class="pl-s1">msg</span>);
+<span class="pl-k">if</span> (<span class="pl-s1">result</span>.<span class="pl-en">getSendStatus</span>() == <span class="pl-smi">SendStatus</span>.<span class="pl-c1">SEND_OK</span>) {
+    <span class="pl-c">// 消息发送成功</span>
+}
+
+<span class="pl-c">// 异步确认</span>
+<span class="pl-s1">producer</span>.<span class="pl-en">send</span>(<span class="pl-s1">msg</span>, <span class="pl-k">new</span> <span class="pl-smi">SendCallback</span>() {
+    <span class="pl-c1">@</span><span class="pl-c1">Override</span>
+    <span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">onSuccess</span>(<span class="pl-smi">SendResult</span> <span class="pl-s1">result</span>) {
+        <span class="pl-c">// 消息发送成功</span>
+    }
+    <span class="pl-c1">@</span><span class="pl-c1">Override</span>
+    <span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">onException</span>(<span class="pl-smi">Throwable</span> <span class="pl-s1">e</span>) {
+        <span class="pl-c">// 消息发送失败（重试或记录日志）</span>
+    }
+});</pre></div>
+<h4>（2）Broker 端丢失：消息存储后未持久化</h4>
+<p><strong>原因</strong>：Broker 未及时刷盘（如异步刷盘时宕机）、副本未同步（如 Kafka 副本数不足）。</p>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li><strong>持久化配置</strong>：
+<ul>
+<li>RocketMQ：启用 <strong>同步刷盘</strong>（<code class="notranslate">flushDiskType=SYNC_FLUSH</code>，消息写入磁盘后才返回 ACK）；</li>
+<li>Kafka：设置 <code class="notranslate">acks=all</code>（消息需同步到所有 ISR 副本才返回 ACK）；</li>
+</ul>
+</li>
+<li><strong>多副本机制</strong>：Broker 部署主从集群（如 RocketMQ 的 Master-Slave 模式，Kafka 的分区副本），避免单节点宕机。</li>
+</ul>
+<h4>（3）消费端丢失：消息未处理完成即被确认</h4>
+<p><strong>原因</strong>：消费者处理消息时抛出异常，MQ 误以为消息已消费（如自动 ACK）。</p>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li><strong>手动 ACK</strong>：消费者处理完消息后，主动向 MQ 发送确认（如 RabbitMQ 的 <code class="notranslate">channel.basicAck</code>，RocketMQ 的 <code class="notranslate">ConsumeConcurrentlyStatus.CONSUME_SUCCESS</code>）；</li>
+<li><strong>失败重试与死信队列</strong>：消息处理失败时，MQ 自动重试（需设置最大重试次数），重试失败的消息存入死信队列（人工干预）。</li>
+</ul>
+<p><strong>RocketMQ 消费端手动确认示例</strong>：</p>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-smi">DefaultMQPushConsumer</span> <span class="pl-s1">consumer</span> = <span class="pl-k">new</span> <span class="pl-smi">DefaultMQPushConsumer</span>(<span class="pl-s">"group1"</span>);
+<span class="pl-s1">consumer</span>.<span class="pl-en">registerMessageListener</span>((<span class="pl-smi">MessageListenerConcurrently</span>) (<span class="pl-s1">msgs</span>, <span class="pl-s1">context</span>) -&gt; {
+    <span class="pl-k">try</span> {
+        <span class="pl-c">// 处理消息（如扣减库存）</span>
+        <span class="pl-k">for</span> (<span class="pl-smi">MessageExt</span> <span class="pl-s1">msg</span> : <span class="pl-s1">msgs</span>) {
+            <span class="pl-smi">System</span>.<span class="pl-s1">out</span>.<span class="pl-en">println</span>(<span class="pl-k">new</span> <span class="pl-smi">String</span>(<span class="pl-s1">msg</span>.<span class="pl-en">getBody</span>()));
+        }
+        <span class="pl-k">return</span> <span class="pl-smi">ConsumeConcurrentlyStatus</span>.<span class="pl-c1">CONSUME_SUCCESS</span>; <span class="pl-c">// 手动确认成功</span>
+    } <span class="pl-k">catch</span> (<span class="pl-smi">Exception</span> <span class="pl-s1">e</span>) {
+        <span class="pl-k">return</span> <span class="pl-smi">ConsumeConcurrentlyStatus</span>.<span class="pl-c1">RECONSUME_LATER</span>; <span class="pl-c">// 失败，触发重试</span>
+    }
+});</pre></div>
+<h2>四、如何保证消息幂等性？</h2>
+<h3>1. 幂等性定义</h3>
+<p><strong>幂等性</strong>：多次消费同一消息，结果与消费一次一致（如多次扣减库存，最终库存正确）。</p>
+<h3>2. 消息重复原因</h3>
+<ul>
+<li>生产端重试（发送失败后重复发送）；</li>
+<li>消费端 ACK 未成功（MQ 未收到确认，重复推送）。</li>
+</ul>
+<h3>3. 幂等性实现方案</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>方案</th>
+<th>实现原理</th>
+<th>示例代码/说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>全局唯一 ID</strong></td>
+<td>每条消息生成唯一 ID（如 UUID），消费时校验是否已处理</td>
+<td>数据库：<code class="notranslate">INSERT INTO msg_log (msg_id) VALUES (?) ON DUPLICATE KEY UPDATE ...</code></td>
+</tr>
+<tr>
+<td><strong>状态机校验</strong></td>
+<td>业务操作有明确的状态流转（如订单状态：未支付→已支付→已发货）</td>
+<td>消费时检查当前状态是否允许操作（如“已支付”才能发货）</td>
+</tr>
+<tr>
+<td><strong>Redis 去重</strong></td>
+<td>使用 Redis 记录已处理的消息 ID（设置过期时间）</td>
+<td><code class="notranslate">if (redis.setNX(msgId, "1", 3600)) { 处理消息 }</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p><strong>数据库唯一索引示例</strong>：</p>
+<div class="highlight highlight-source-sql"><pre class="notranslate"><span class="pl-c"><span class="pl-c">--</span> 创建消息日志表（msg_id 唯一索引）</span>
+<span class="pl-k">CREATE</span> <span class="pl-k">TABLE</span> <span class="pl-en">msg_log</span> (
+    id <span class="pl-k">INT</span> <span class="pl-k">PRIMARY KEY</span> AUTO_INCREMENT,
+    msg_id <span class="pl-k">VARCHAR</span>(<span class="pl-c1">64</span>) UNIQUE,  <span class="pl-c"><span class="pl-c">--</span> 消息全局唯一 ID</span>
+    status TINYINT DEFAULT <span class="pl-c1">0</span>    <span class="pl-c"><span class="pl-c">--</span> 0:未处理 1:已处理</span>
+);
+
+<span class="pl-c"><span class="pl-c">--</span> 消费消息时，先插入或更新状态</span>
+<span class="pl-k">INSERT INTO</span> msg_log (msg_id, status) <span class="pl-k">VALUES</span> (<span class="pl-s"><span class="pl-pds">'</span>uuid-123<span class="pl-pds">'</span></span>, <span class="pl-c1">1</span>) 
+<span class="pl-k">ON</span> DUPLICATE KEY <span class="pl-k">UPDATE</span> status <span class="pl-k">=</span> <span class="pl-c1">1</span>;  <span class="pl-c"><span class="pl-c">--</span> 重复消息自动忽略</span></pre></div>
+<h2>五、如何保证消息顺序性？</h2>
+<h3>1. 顺序性的两种场景</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>场景</th>
+<th>说明</th>
+<th>典型案例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>全局顺序</strong></td>
+<td>所有消息按发送顺序被消费</td>
+<td>银行流水记录（必须按时间顺序处理）</td>
+</tr>
+<tr>
+<td><strong>分区顺序</strong></td>
+<td>同一分组内的消息按顺序消费（不同分组可并行）</td>
+<td>电商订单（同一订单的消息需顺序处理，不同订单可并行）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 实现方法</h3>
+<h4>（1）生产端：消息路由到同一队列/分区</h4>
+<ul>
+<li><strong>RabbitMQ</strong>：将消息发送到同一个队列（单消费者）；</li>
+<li><strong>Kafka/RocketMQ</strong>：通过自定义路由策略，将同一分组的消息发送到同一分区（如订单 ID 取模分区数）。</li>
+</ul>
+<p><strong>RocketMQ 自定义路由示例</strong>：</p>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-c">// 自定义消息队列选择器（按订单 ID 路由到固定队列）</span>
+<span class="pl-smi">MessageQueueSelector</span> <span class="pl-s1">selector</span> = (<span class="pl-s1">mqs</span>, <span class="pl-s1">msg</span>, <span class="pl-s1">arg</span>) -&gt; {
+    <span class="pl-smi">Long</span> <span class="pl-s1">orderId</span> = (<span class="pl-smi">Long</span>) <span class="pl-s1">arg</span>;  <span class="pl-c">// 订单 ID</span>
+    <span class="pl-smi">int</span> <span class="pl-s1">index</span> = (<span class="pl-smi">int</span>) (<span class="pl-s1">orderId</span> % <span class="pl-s1">mqs</span>.<span class="pl-en">size</span>());
+    <span class="pl-k">return</span> <span class="pl-s1">mqs</span>.<span class="pl-en">get</span>(<span class="pl-s1">index</span>);  <span class="pl-c">// 同一订单 ID 路由到同一队列</span>
+};
+
+<span class="pl-s1">producer</span>.<span class="pl-en">send</span>(<span class="pl-s1">msg</span>, <span class="pl-s1">selector</span>, <span class="pl-s1">orderId</span>);  <span class="pl-c">// 发送时指定路由参数</span></pre></div>
+<h4>（2）消费端：单线程消费同一队列/分区</h4>
+<ul>
+<li><strong>RabbitMQ</strong>：单消费者实例 + 关闭自动 ACK；</li>
+<li><strong>Kafka/RocketMQ</strong>：消费端为每个分区分配一个线程（或限制并发数为 1）。</li>
+</ul>
+<p><strong>RocketMQ 顺序消费配置</strong>：</p>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-s1">consumer</span>.<span class="pl-en">setMessageModel</span>(<span class="pl-smi">MessageModel</span>.<span class="pl-c1">CLUSTERING</span>);  <span class="pl-c">// 集群消费模式（负载均衡）</span>
+<span class="pl-s1">consumer</span>.<span class="pl-en">registerMessageListener</span>(<span class="pl-k">new</span> <span class="pl-smi">MessageListenerOrderly</span>() {  <span class="pl-c">// 顺序消费监听器</span>
+    <span class="pl-c1">@</span><span class="pl-c1">Override</span>
+    <span class="pl-k">public</span> <span class="pl-smi">ConsumeOrderlyStatus</span> <span class="pl-en">consumeMessage</span>(<span class="pl-smi">List</span>&lt;<span class="pl-smi">MessageExt</span>&gt; <span class="pl-s1">msgs</span>, <span class="pl-smi">ConsumeOrderlyContext</span> <span class="pl-s1">context</span>) {
+        <span class="pl-k">for</span> (<span class="pl-smi">MessageExt</span> <span class="pl-s1">msg</span> : <span class="pl-s1">msgs</span>) {
+            <span class="pl-c">// 按顺序处理消息（单线程）</span>
+        }
+        <span class="pl-k">return</span> <span class="pl-smi">ConsumeOrderlyStatus</span>.<span class="pl-c1">SUCCESS</span>;
+    }
+});</pre></div>
+<h2>六、MQ 高效读写：零拷贝技术</h2>
+<h3>1. 传统 IO 读写流程的问题</h3>
+<p>传统文件读写需经过 <strong>用户态→内核态→用户态</strong> 的数据拷贝，涉及 4 次数据复制和 2 次上下文切换，效率低下。</p>
+<h3>2. 零拷贝（Zero-Copy）原理</h3>
+<p>通过操作系统优化，减少数据拷贝次数。MQ 主要使用两种零拷贝技术：</p>
+<h4>（1）mmap（内存映射）</h4>
+<p>将文件直接映射到用户态内存，避免用户态与内核态的拷贝。RocketMQ 的 <code class="notranslate">CommitLog</code>（消息存储文件）即使用 <code class="notranslate">mmap</code> 实现高效写入。</p>
+<h4>（2）sendfile（内核直接传输）</h4>
+<p>数据从文件→内核缓冲区→Socket 缓冲区，无需经过用户态。Kafka 的消息拉取（<code class="notranslate">fetch</code>）使用 <code class="notranslate">sendfile</code> 优化网络传输。</p>
+<h3>3. RocketMQ 存储优化</h3>
+<p>RocketMQ 通过 <strong>顺序写 + 零拷贝</strong> 实现百万级 TPS：</p>
+<ul>
+<li><strong>顺序写</strong>：所有消息追加写入 <code class="notranslate">CommitLog</code>（单个大文件），避免随机 IO；</li>
+<li><strong>内存映射</strong>：<code class="notranslate">CommitLog</code> 通过 <code class="notranslate">mmap</code> 映射到内存，写入速度接近内存；</li>
+<li><strong>异步刷盘</strong>（可选同步）：消息先写入内存，定时刷盘（降低 IO 压力）。</li>
+</ul>
+<h2>七、MQ 与分布式事务的最终一致性</h2>
+<h3>1. 问题背景</h3>
+<p>分布式系统中，跨服务的事务（如“下单+扣库存+发优惠券”）无法通过本地事务保证一致性，需通过 MQ 实现<strong>最终一致</strong>。</p>
+<h3>2. 解决方案：RocketMQ 事务消息</h3>
+<h4>（1）核心流程（时序图）</h4>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">sequenceDiagram</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">Producer</span> <span class="pl-k">as</span> <span class="pl-ent">生产者（订单服务）</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">MQ</span> <span class="pl-k">as</span> <span class="pl-ent">RocketMQ Broker</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">Consumer</span> <span class="pl-k">as</span> <span class="pl-ent">消费者（库存服务）</span>
+    <span class="pl-ent">Producer</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">MQ</span><span class="pl-k">:</span> <span class="pl-s">发送半消息（"准备扣库存"，未提交）</span>
+    <span class="pl-ent">MQ</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Producer</span><span class="pl-k">:</span> <span class="pl-s">返回半消息 ACK</span>
+    <span class="pl-ent">Producer</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Producer</span><span class="pl-k">:</span> <span class="pl-s">执行本地事务（创建订单）</span>
+    <span class="pl-k">alt</span> <span class="pl-s">本地事务成功</span>
+        <span class="pl-ent">Producer</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">MQ</span><span class="pl-k">:</span> <span class="pl-s">发送提交指令（半消息变为可消费）</span>
+    <span class="pl-k">else</span> <span class="pl-s">本地事务失败</span>
+        <span class="pl-ent">Producer</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">MQ</span><span class="pl-k">:</span> <span class="pl-s">发送回滚指令（半消息被删除）</span>
+    <span class="pl-k">end</span>
+    <span class="pl-ent">MQ</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Consumer</span><span class="pl-k">:</span> <span class="pl-s">推送已提交的消息</span>
+    <span class="pl-ent">Consumer</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">MQ</span><span class="pl-k">:</span> <span class="pl-s">消费成功，返回 ACK</span></pre></div>
+<h4>（2）关键机制</h4>
+<ul>
+<li><strong>半消息</strong>：消息发送到 MQ 但未提交，对消费者不可见；</li>
+<li><strong>事务回查</strong>：若 MQ 未收到提交/回滚指令，主动查询生产者本地事务状态（防止生产者宕机）；</li>
+<li><strong>最终一致</strong>：消费者处理消息失败时，MQ 自动重试（确保最终成功）。</li>
+</ul>
+<p><strong>RocketMQ 事务消息代码示例</strong>：</p>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-c">// 1. 创建事务生产者</span>
+<span class="pl-smi">TransactionMQProducer</span> <span class="pl-s1">producer</span> = <span class="pl-k">new</span> <span class="pl-smi">TransactionMQProducer</span>(<span class="pl-s">"tx_group"</span>);
+<span class="pl-s1">producer</span>.<span class="pl-en">setTransactionListener</span>(<span class="pl-k">new</span> <span class="pl-smi">TransactionListener</span>() {
+    <span class="pl-c1">@</span><span class="pl-c1">Override</span>
+    <span class="pl-k">public</span> <span class="pl-smi">LocalTransactionState</span> <span class="pl-en">executeLocalTransaction</span>(<span class="pl-smi">Message</span> <span class="pl-s1">msg</span>, <span class="pl-smi">Object</span> <span class="pl-s1">arg</span>) {
+        <span class="pl-c">// 执行本地事务（如创建订单）</span>
+        <span class="pl-smi">boolean</span> <span class="pl-s1">orderSuccess</span> = <span class="pl-en">createOrder</span>(); 
+        <span class="pl-k">return</span> <span class="pl-s1">orderSuccess</span> ? <span class="pl-smi">LocalTransactionState</span>.<span class="pl-c1">COMMIT_MESSAGE</span> : <span class="pl-smi">LocalTransactionState</span>.<span class="pl-c1">ROLLBACK_MESSAGE</span>;
+    }
+
+    <span class="pl-c1">@</span><span class="pl-c1">Override</span>
+    <span class="pl-k">public</span> <span class="pl-smi">LocalTransactionState</span> <span class="pl-en">checkLocalTransaction</span>(<span class="pl-smi">MessageExt</span> <span class="pl-s1">msg</span>) {
+        <span class="pl-c">// MQ 回查本地事务状态（如查询订单是否创建）</span>
+        <span class="pl-smi">boolean</span> <span class="pl-s1">orderExists</span> = <span class="pl-en">checkOrderExists</span>(); 
+        <span class="pl-k">return</span> <span class="pl-s1">orderExists</span> ? <span class="pl-smi">LocalTransactionState</span>.<span class="pl-c1">COMMIT_MESSAGE</span> : <span class="pl-smi">LocalTransactionState</span>.<span class="pl-c1">ROLLBACK_MESSAGE</span>;
+    }
+});
+
+<span class="pl-c">// 2. 发送半消息</span>
+<span class="pl-smi">Message</span> <span class="pl-s1">msg</span> = <span class="pl-k">new</span> <span class="pl-smi">Message</span>(<span class="pl-s">"topic"</span>, <span class="pl-s">"tag"</span>, <span class="pl-s">"扣库存"</span>.<span class="pl-en">getBytes</span>());
+<span class="pl-s1">producer</span>.<span class="pl-en">sendMessageInTransaction</span>(<span class="pl-s1">msg</span>, <span class="pl-c1">null</span>);</pre></div>
+<h2>八、RocketMQ 详细解析</h2>
+<h3>1. 核心组成</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>组件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NameServer</strong></td>
+<td>路由中心（无状态，集群部署），存储 Broker 地址、Topic 路由信息</td>
+</tr>
+<tr>
+<td><strong>Broker</strong></td>
+<td>消息存储与转发（Master-Slave 模式，支持同步/异步复制）</td>
+</tr>
+<tr>
+<td><strong>Producer</strong></td>
+<td>消息生产者（支持事务消息、顺序消息）</td>
+</tr>
+<tr>
+<td><strong>Consumer</strong></td>
+<td>消息消费者（Push/Pull 模式，集群/广播消费）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 存储机制（三级结构）</h3>
+<h4>（1）CommitLog（消息日志）</h4>
+<ul>
+<li>所有消息按顺序追加写入（单文件 1GB，顺序写速度≈内存）；</li>
+<li>存储内容：消息体、Topic、队列 ID、物理偏移量等。</li>
+</ul>
+<h4>（2）ConsumeQueue（消费队列）</h4>
+<ul>
+<li>每个 Topic 的每个队列对应一个 <code class="notranslate">ConsumeQueue</code>（索引文件）；</li>
+<li>存储内容：消息在 <code class="notranslate">CommitLog</code> 中的物理偏移量、消息长度、Tag 哈希值。</li>
+</ul>
+<h4>（3）IndexFile（索引文件）</h4>
+<ul>
+<li>基于消息 Key 或时间戳的快速查询索引；</li>
+<li>存储内容：Key 哈希值、消息偏移量、时间戳等。</li>
+</ul>
+<p><strong>存储结构流程图</strong>：</p>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">TD</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Producer 发送消息<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Broker 写入 CommitLog<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>更新 ConsumeQueue（记录 CommitLog 偏移量）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Consumer 根据 ConsumeQueue 偏移量读取 CommitLog 中的消息<span class="pl-pds"><span class="pl-sg">]</span></span></span></pre></div>
+<h3>3. 负载均衡</h3>
+<h4>（1）Producer 消息路由</h4>
+<ul>
+<li><strong>默认策略</strong>：轮询选择 Topic 的队列（保证消息均匀分布）；</li>
+<li><strong>自定义策略</strong>：按业务规则（如订单 ID）路由到固定队列（保证顺序性）。</li>
+</ul>
+<h4>（2）Consumer 负载分配</h4>
+<ul>
+<li><strong>集群消费</strong>（默认）：多个消费者实例分摊队列（如 5 个队列 + 2 个消费者 → 3+2 分配）；</li>
+<li><strong>广播消费</strong>：每个消费者实例消费所有队列（用于通知类场景）。</li>
+</ul>
+<h2>九、高频面试问题总结</h2>
+<h3>1. 如何保证消息不丢失？</h3>
+<p>答：分三环节：</p>
+<ul>
+<li>生产端：同步/异步确认、事务消息；</li>
+<li>Broker 端：同步刷盘、多副本；</li>
+<li>消费端：手动 ACK、失败重试+死信队列。</li>
+</ul>
+<h3>2. 消息幂等性的实现方式？</h3>
+<p>答：全局唯一 ID（数据库唯一索引/Redis 去重）、状态机校验。</p>
+<h3>3. 如何保证消息顺序？</h3>
+<p>答：生产端将同一分组消息路由到同一队列/分区；消费端单线程消费同一队列。</p>
+<h3>4. RocketMQ 为什么快？</h3>
+<p>答：顺序写 CommitLog（避免随机 IO）、mmap 内存映射（零拷贝写入）、sendfile 网络传输（零拷贝读取）。</p>
+<h3>5. RocketMQ 事务消息的流程？</h3>
+<p>答：发送半消息→执行本地事务→提交/回滚→消费者消费；事务回查机制保证本地事务状态可查询。</p>
+<p>通过本文的梳理，可系统掌握 MQ 的核心机制及面试高频问题，应对分布式系统通信、高并发场景的技术提问。</p></div>
+<div style="font-size:small;margin-top:8px;float:right;"></div>
+
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+
+</div>
+    <div id="footer"><div id="footer1">Copyright © <span id="copyrightYear"></span> <a href="https://TubroCoder.github.io/blog">Tubro‘s blog</a></div>
+<div id="footer2">
+    <span id="runday"></span><span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a></span>
+</div>
+
+<script>
+var now=new Date();
+document.getElementById("copyrightYear").innerHTML=now.getFullYear();
+
+if(""!=""){
+    var startSite=new Date("");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+}
+</script></div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z', 'copy': 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z', 'check': 'M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","TubroCoder/blog");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const createClipboardHTML = (codeContent, additionalClasses = '') => `
+        <pre class="notranslate"><code class="notranslate">${codeContent}</code></pre>
+        <div class="clipboard-container position-absolute right-0 top-0 ${additionalClasses}">
+            <clipboard-copy class="ClipboardButton btn m-2 p-0" role="button" style="display: inherit;">
+                <svg height="16" width="16" class="octicon octicon-copy m-2"><path d="${IconList["copy"]}"></path></svg>
+                <svg height="16" width="16" class="octicon octicon-check color-fg-success m-2 d-none"><path d="${IconList["check"]}"></path></svg>
+            </clipboard-copy>
+            <div class="copy-feedback">Copied!</div>
+        </div>
+    `;
+
+    const handleCodeElements = (selector = '') => {
+        document.querySelectorAll(selector).forEach(codeElement => {
+            const codeContent = codeElement.innerHTML;
+            const newStructure = document.createElement('div');
+            newStructure.className = 'snippet-clipboard-content position-relative overflow-auto';
+            newStructure.innerHTML = createClipboardHTML(codeContent);
+
+            const parentElement = codeElement.parentElement;
+            if (selector.includes('highlight')) {
+                parentElement.insertBefore(newStructure, codeElement.nextSibling);
+                parentElement.removeChild(codeElement);
+            } else {
+                parentElement.parentElement.replaceChild(newStructure, parentElement);
+            }
+        });
+    };
+
+    handleCodeElements('pre.notranslate > code.notranslate');
+    handleCodeElements('div.highlight > pre.notranslate');
+
+    let currentFeedback = null;
+    document.querySelectorAll('clipboard-copy').forEach(copyButton => {
+        copyButton.addEventListener('click', () => {
+            const codeContent = copyButton.closest('.snippet-clipboard-content').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const copyIcon = copyButton.querySelector('.octicon-copy');
+            const checkIcon = copyButton.querySelector('.octicon-check');
+            const copyFeedback = copyButton.nextElementSibling;
+
+            if (currentFeedback && currentFeedback !== copyFeedback) {currentFeedback.style.display = 'none';}
+            currentFeedback = copyFeedback;
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copyFeedback.style.display = 'block';
+            copyButton.style.borderColor = 'var(--color-success-fg)';
+
+            setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyFeedback.style.display = 'none';
+                copyButton.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
+
+</script>
+
+
+</html>

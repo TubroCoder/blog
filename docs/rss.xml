@@ -1,5 +1,27 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 10:42:23 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-redis</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--redis.html</link><description>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 10:47:32 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-mq</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--mq.html</link><description>
+# MQ（消息队列）核心面试知识点笔记  
+
+
+## 一、为什么需要 MQ？  
+
+
+### 1. 核心价值  
+消息队列（Message Queue, MQ）是分布式系统中的**异步通信中间件**，核心解决以下问题：  
+
+
+| 问题                | 场景说明                                                                 | MQ 解决方案                                                           |  
+|---------------------|--------------------------------------------------------------------------|-----------------------------------------------------------------------|  
+| **系统解耦**        | 订单系统需通知库存、物流、支付等多个系统，直接调用导致强依赖             | 订单系统只发消息到 MQ，其他系统订阅消息，互不影响                     |  
+| **异步提速**        | 用户下单需同步调用库存扣减、积分发放等耗时操作，响应时间长               | 主流程（下单）完成后，其他操作通过 MQ 异步处理，响应时间从秒级→毫秒级  |  
+| **削峰填谷**        | 秒杀活动时，短时间内请求量暴增（10万/秒），超出数据库处理能力（1万/秒）  | MQ 缓存请求（削峰），数据库按稳定速率消费（填谷）                     |  
+
+
+### 2. 典型使用场景  
+- 异步通知（如短信、邮件发送）；  
+- 日志收集（微服务日志汇总到 ELK）；  
+- 流量控制（秒杀活动的请求缓冲）；  
+- 数据同步（MySQL -binlog 通过 MQ 同步到 ES）。</description><guid isPermaLink="true">https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--mq.html</guid><pubDate>Fri, 30 May 2025 10:47:09 +0000</pubDate></item><item><title>求职面试笔记-redis</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--redis.html</link><description>
 # Redis 核心面试知识点笔记  
 
 
