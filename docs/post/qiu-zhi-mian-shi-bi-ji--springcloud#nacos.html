@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
+    
+    <link rel="icon" href="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="
+# Spring Cloud Nacos 核心面试知识点笔记  
+
+
+## 一、Nacos 核心定位与优势  
+
+
+### 1. 基础概念  
+Nacos（**Na**ming **Co**nfiguration **S**ervice）是阿里巴巴开源的分布式注册中心与配置中心一体化解决方案，支持 **服务发现、服务健康监测、动态配置管理、服务及元数据管理** 四大核心功能。">
+<meta property="og:title" content="求职面试笔记-springcloud#nacos">
+<meta property="og:description" content="
+# Spring Cloud Nacos 核心面试知识点笔记  
+
+
+## 一、Nacos 核心定位与优势  
+
+
+### 1. 基础概念  
+Nacos（**Na**ming **Co**nfiguration **S**ervice）是阿里巴巴开源的分布式注册中心与配置中心一体化解决方案，支持 **服务发现、服务健康监测、动态配置管理、服务及元数据管理** 四大核心功能。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--springcloud%23nacos.html">
+<meta property="og:image" content="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true">
+<title>求职面试笔记-springcloud#nacos</title>
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
+
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+.copy-feedback {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    color: var(--color-fg-on-emphasis);
+    background-color: var(--color-fg-muted);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">求职面试笔记-springcloud#nacos</h1>
+<div class="title-right">
+    <a href="https://TubroCoder.github.io/blog" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/TubroCoder/blog/issues/6" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><h1>Spring Cloud Nacos 核心面试知识点笔记</h1>
+<h2>一、Nacos 核心定位与优势</h2>
+<h3>1. 基础概念</h3>
+<p>Nacos（<strong>Na</strong>ming <strong>Co</strong>nfiguration <strong>S</strong>ervice）是阿里巴巴开源的分布式注册中心与配置中心一体化解决方案，支持 <strong>服务发现、服务健康监测、动态配置管理、服务及元数据管理</strong> 四大核心功能。</p>
+<h3>2. 核心优势对比</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>Nacos</th>
+<th>Eureka（传统注册中心）</th>
+<th>Spring Cloud Config（传统配置中心）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>功能定位</td>
+<td>注册中心 + 配置中心 一体化</td>
+<td>仅注册中心</td>
+<td>仅配置中心</td>
+</tr>
+<tr>
+<td>一致性模式</td>
+<td>支持 AP（默认）/ CP 模式（可切换）</td>
+<td>AP（可用优先）</td>
+<td>无（依赖 Git 一致性）</td>
+</tr>
+<tr>
+<td>健康检查</td>
+<td>服务端主动检查 + 客户端心跳</td>
+<td>仅客户端心跳（30s 一次）</td>
+<td>无（需手动刷新）</td>
+</tr>
+<tr>
+<td>配置管理</td>
+<td>支持动态推送、版本回滚、多环境隔离</td>
+<td>无</td>
+<td>依赖 Git 存储，需手动触发刷新</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>二、Nacos 作为注册中心</h2>
+<h3>1. 核心概念与术语</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>术语</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>服务（Service）</strong></td>
+<td>逻辑上的服务实体（如 <code class="notranslate">order-service</code>、<code class="notranslate">product-service</code>）</td>
+</tr>
+<tr>
+<td><strong>实例（Instance）</strong></td>
+<td>服务的具体运行实例（如某台机器上的 <code class="notranslate">order-service:8080</code>）</td>
+</tr>
+<tr>
+<td><strong>健康检查</strong></td>
+<td>Nacos 服务端定期检查实例状态（如 HTTP/TCP 检查、客户端心跳）</td>
+</tr>
+<tr>
+<td><strong>元数据（Metadata）</strong></td>
+<td>实例的附加信息（如版本、环境、权重），用于自定义路由规则</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 服务注册流程（时序图）</h3>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">sequenceDiagram</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">Instance</span> <span class="pl-k">as</span> <span class="pl-ent">服务实例（如 OrderService）</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">Nacos</span> <span class="pl-k">as</span> <span class="pl-ent">Nacos Server</span>
+    <span class="pl-ent">Instance</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Nacos</span><span class="pl-k">:</span> <span class="pl-s">启动时发送 POST /nacos/v1/ns/instance 注册请求（携带 IP、端口、元数据）</span>
+    <span class="pl-ent">Nacos</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Instance</span><span class="pl-k">:</span> <span class="pl-s">返回 200 OK（注册成功）</span>
+    <span class="pl-ent">Instance</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Nacos</span><span class="pl-k">:</span> <span class="pl-s">每 5s 发送 PUT /nacos/v1/ns/instance/beat 心跳（默认心跳间隔 5s）</span>
+    <span class="pl-ent">Nacos</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Nacos</span><span class="pl-k">:</span> <span class="pl-s">记录实例最后心跳时间（超过 15s 未心跳标记为不健康，超过 30s 剔除）</span></pre></div>
+<h3>3. 服务发现流程（客户端拉取模式）</h3>
+<p>客户端通过 Nacos SDK 定期拉取服务实例列表（默认 30s 拉取一次），或监听服务变化事件实时更新。</p>
+<h4>代码示例：服务发现（Spring Cloud）</h4>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-c1">@</span><span class="pl-c1">Service</span>
+<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-smi">OrderService</span> {
+    <span class="pl-c1">@</span><span class="pl-c1">Autowired</span>
+    <span class="pl-k">private</span> <span class="pl-smi">NacosDiscoveryProperties</span> <span class="pl-s1">discoveryProperties</span>; <span class="pl-c">// Nacos 配置</span>
+    <span class="pl-c1">@</span><span class="pl-c1">Autowired</span>
+    <span class="pl-k">private</span> <span class="pl-smi">RestTemplate</span> <span class="pl-s1">restTemplate</span>;
+
+    <span class="pl-k">public</span> <span class="pl-smi">String</span> <span class="pl-en">getProductInfo</span>() {
+        <span class="pl-c">// 1. 从 Nacos 获取 "product-service" 的所有健康实例</span>
+        <span class="pl-smi">List</span>&lt;<span class="pl-smi">ServiceInstance</span>&gt; <span class="pl-s1">instances</span> = <span class="pl-s1">discoveryProperties</span>.<span class="pl-en">namingService</span>()
+            .<span class="pl-en">selectInstances</span>(<span class="pl-s">"product-service"</span>, <span class="pl-c1">true</span>); <span class="pl-c">// true 表示仅健康实例</span>
+        
+        <span class="pl-c">// 2. 负载均衡（示例用轮询）</span>
+        <span class="pl-smi">ServiceInstance</span> <span class="pl-s1">instance</span> = <span class="pl-s1">instances</span>.<span class="pl-en">get</span>(<span class="pl-c1">0</span>);
+        <span class="pl-smi">String</span> <span class="pl-s1">url</span> = <span class="pl-s">"http://"</span> + <span class="pl-s1">instance</span>.<span class="pl-en">getHost</span>() + <span class="pl-s">":"</span> + <span class="pl-s1">instance</span>.<span class="pl-en">getPort</span>() + <span class="pl-s">"/product"</span>;
+        
+        <span class="pl-c">// 3. 调用远程服务</span>
+        <span class="pl-k">return</span> <span class="pl-s1">restTemplate</span>.<span class="pl-en">getForObject</span>(<span class="pl-s1">url</span>, <span class="pl-smi">String</span>.<span class="pl-k">class</span>);
+    }
+}</pre></div>
+<h3>4. 心跳与健康检查机制</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>机制</th>
+<th>说明</th>
+<th>默认参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>客户端心跳</strong></td>
+<td>实例主动向 Nacos 发送心跳（HTTP/PUT 请求）</td>
+<td>心跳间隔 5s，超时 30s 剔除实例</td>
+</tr>
+<tr>
+<td><strong>服务端主动检查</strong></td>
+<td>Nacos 服务端对实例发起 HTTP/TCP 检查（适用于无心跳能力的实例）</td>
+<td>HTTP 检查路径 <code class="notranslate">/actuator/health</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>5. 集群同步机制（AP/CP 模式）</h3>
+<p>Nacos 支持两种一致性模式，通过 <code class="notranslate">nacos.core.auth.cp-mode</code> 配置切换：</p>
+<h4>（1）AP 模式（默认）</h4>
+<ul>
+<li><strong>一致性协议</strong>：使用 <code class="notranslate">Distro</code> 协议（分布式哈希分区）；</li>
+<li><strong>特点</strong>：高可用优先，允许短暂数据不一致；</li>
+<li><strong>适用场景</strong>：服务发现（允许实例列表短暂不同步）。</li>
+</ul>
+<h4>（2）CP 模式</h4>
+<ul>
+<li><strong>一致性协议</strong>：使用 <code class="notranslate">Raft</code> 协议（强一致性）；</li>
+<li><strong>特点</strong>：强一致性，leader 选举期间不可写；</li>
+<li><strong>适用场景</strong>：配置管理（需严格保证配置一致）。</li>
+</ul>
+<h2>三、Nacos 作为配置中心</h2>
+<h3>1. 核心概念与术语</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>术语</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Data ID</strong></td>
+<td>配置文件的唯一标识（如 <code class="notranslate">order-service-dev.properties</code>）</td>
+</tr>
+<tr>
+<td><strong>Group</strong></td>
+<td>配置分组（如 <code class="notranslate">DEFAULT_GROUP</code>、<code class="notranslate">PROD_GROUP</code>）</td>
+</tr>
+<tr>
+<td><strong>Namespace</strong></td>
+<td>环境隔离（如 <code class="notranslate">dev</code>、<code class="notranslate">test</code>、<code class="notranslate">prod</code>）</td>
+</tr>
+<tr>
+<td><strong>配置版本</strong></td>
+<td>每次配置变更生成新版本，支持回滚</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 配置存储结构</h3>
+<p>Nacos 配置按 <code class="notranslate">Namespace → Group → Data ID</code> 三级结构存储，示例：</p>
+<pre class="notranslate"><code class="notranslate">Namespace: dev  
+└─ Group: DEFAULT_GROUP  
+   └─ Data ID: order-service.properties  
+      ├─ key: server.port  
+      └─ value: 8080  
+</code></pre>
+<h3>3. 配置热更新原理（流程图）</h3>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">TD</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>修改 Nacos 配置（Data ID: order-service.properties）<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Nacos 服务端保存新版本配置<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Nacos 服务端通过长轮询/WebSocket 通知所有监听客户端<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>客户端（如 OrderService）收到通知<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">D</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">E</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>客户端从 Nacos 拉取最新配置<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">E</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">F</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>客户端通过 @RefreshScope 刷新标记的 Bean<span class="pl-pds"><span class="pl-sg">]</span></span></span></pre></div>
+<h3>4. 配置热更新代码示例</h3>
+<h4>（1）依赖配置（pom.xml）</h4>
+<div class="highlight highlight-text-xml"><pre class="notranslate">&lt;<span class="pl-ent">dependency</span>&gt;
+    &lt;<span class="pl-ent">groupId</span>&gt;com.alibaba.cloud&lt;/<span class="pl-ent">groupId</span>&gt;
+    &lt;<span class="pl-ent">artifactId</span>&gt;spring-cloud-starter-alibaba-nacos-config&lt;/<span class="pl-ent">artifactId</span>&gt;
+&lt;/<span class="pl-ent">dependency</span>&gt;</pre></div>
+<h4>（2）bootstrap.properties（配置源）</h4>
+<div class="highlight highlight-source-ini"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> 配置中心地址</span>
+<span class="pl-k">spring.cloud.nacos.config.server-addr</span>=127.0.0.1:8848
+<span class="pl-c"><span class="pl-c">#</span> 环境隔离（Namespace ID）</span>
+<span class="pl-k">spring.cloud.nacos.config.namespace</span>=dev
+<span class="pl-c"><span class="pl-c">#</span> Data ID（格式：${prefix}-${spring.profile.active}.${file-extension}）</span>
+<span class="pl-k">spring.cloud.nacos.config.prefix</span>=order-service
+<span class="pl-k">spring.cloud.nacos.config.file-extension</span>=properties</pre></div>
+<h4>（3）动态刷新配置（@RefreshScope）</h4>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-c1">@</span><span class="pl-c1">RefreshScope</span> <span class="pl-c">// 标记该 Bean 支持配置动态刷新</span>
+<span class="pl-c1">@</span><span class="pl-c1">Service</span>
+<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-smi">ConfigService</span> {
+    <span class="pl-c1">@</span><span class="pl-c1">Value</span>(<span class="pl-s">"${server.port}"</span>) <span class="pl-c">// 从 Nacos 读取配置</span>
+    <span class="pl-k">private</span> <span class="pl-smi">int</span> <span class="pl-s1">port</span>;
+
+    <span class="pl-k">public</span> <span class="pl-smi">String</span> <span class="pl-en">getConfig</span>() {
+        <span class="pl-k">return</span> <span class="pl-s">"当前端口配置："</span> + <span class="pl-s1">port</span>;
+    }
+}</pre></div>
+<h3>5. 配置监听（编程式）</h3>
+<p>通过 <code class="notranslate">NacosConfigListener</code> 手动监听配置变更，适用于需要自定义处理逻辑的场景：</p>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-c1">@</span><span class="pl-c1">Autowired</span>
+<span class="pl-k">private</span> <span class="pl-smi">ConfigService</span> <span class="pl-s1">configService</span>; <span class="pl-c">// Nacos 配置服务</span>
+
+<span class="pl-c1">@</span><span class="pl-c1">PostConstruct</span>
+<span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">init</span>() <span class="pl-k">throws</span> <span class="pl-smi">NacosException</span> {
+    <span class="pl-c">// 监听 Data ID 为 "order-service.properties" 的配置变更</span>
+    <span class="pl-s1">configService</span>.<span class="pl-en">addListener</span>(<span class="pl-s">"order-service.properties"</span>, <span class="pl-s">"DEFAULT_GROUP"</span>, <span class="pl-k">new</span> <span class="pl-smi">Listener</span>() {
+        <span class="pl-c1">@</span><span class="pl-c1">Override</span>
+        <span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">receiveConfigInfo</span>(<span class="pl-smi">String</span> <span class="pl-s1">configInfo</span>) {
+            <span class="pl-c">// 配置变更时触发（如重新加载加密配置）</span>
+            <span class="pl-smi">System</span>.<span class="pl-s1">out</span>.<span class="pl-en">println</span>(<span class="pl-s">"配置已变更："</span> + <span class="pl-s1">configInfo</span>);
+        }
+
+        <span class="pl-c1">@</span><span class="pl-c1">Override</span>
+        <span class="pl-k">public</span> <span class="pl-smi">Executor</span> <span class="pl-en">getExecutor</span>() {
+            <span class="pl-k">return</span> <span class="pl-c1">null</span>; <span class="pl-c">// 使用默认线程池</span>
+        }
+    });
+}</pre></div>
+<h2>四、高频面试问题总结</h2>
+<h3>1. Nacos 作为注册中心，如何保证服务实例的健康状态？</h3>
+<p>答：通过 <strong>客户端心跳</strong>（实例每 5s 发送心跳）和 <strong>服务端主动检查</strong>（对无心跳实例发起 HTTP/TCP 检查）。超过 15s 无心跳标记为不健康，超过 30s 剔除实例。</p>
+<h3>2. Nacos 的 AP 模式与 CP 模式有什么区别？</h3>
+<p>答：</p>
+<ul>
+<li><strong>AP 模式</strong>（默认）：使用 Distro 协议，高可用优先，允许短暂数据不一致，适用于服务发现；</li>
+<li><strong>CP 模式</strong>：使用 Raft 协议，强一致性优先，leader 选举期间不可写，适用于配置管理。</li>
+</ul>
+<h3>3. Nacos 配置热更新的原理是什么？</h3>
+<p>答：</p>
+<ol>
+<li>Nacos 服务端保存配置并记录版本；</li>
+<li>客户端通过长轮询（默认 30s）或 WebSocket 监听配置变更；</li>
+<li>配置变更时，服务端通知客户端拉取最新配置；</li>
+<li>客户端通过 <code class="notranslate">@RefreshScope</code> 重新初始化标记的 Bean，实现配置热更新。</li>
+</ol>
+<h3>4. 如何实现 Nacos 配置的多环境隔离？</h3>
+<p>答：通过 <strong>Namespace</strong> 隔离不同环境（如 <code class="notranslate">dev</code>、<code class="notranslate">test</code>、<code class="notranslate">prod</code>），每个 Namespace 可独立管理配置，避免环境配置混用。</p>
+<h3>5. Nacos 相比 Eureka 的优势？</h3>
+<p>答：</p>
+<ul>
+<li>一体化：同时支持注册中心和配置中心；</li>
+<li>健康检查更灵活：支持服务端主动检查；</li>
+<li>一致性模式可选：AP/CP 模式按需切换；</li>
+<li>配置管理更强大：支持动态推送、版本回滚、多环境隔离。</li>
+</ul>
+<p>通过本文的梳理，可系统掌握 Nacos 作为注册中心和配置中心的核心机制，应对面试中的深度提问。</p></div>
+<div style="font-size:small;margin-top:8px;float:right;"></div>
+
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+
+</div>
+    <div id="footer"><div id="footer1">Copyright © <span id="copyrightYear"></span> <a href="https://TubroCoder.github.io/blog">Tubro‘s blog</a></div>
+<div id="footer2">
+    <span id="runday"></span><span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a></span>
+</div>
+
+<script>
+var now=new Date();
+document.getElementById("copyrightYear").innerHTML=now.getFullYear();
+
+if(""!=""){
+    var startSite=new Date("");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+}
+</script></div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z', 'copy': 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z', 'check': 'M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","TubroCoder/blog");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const createClipboardHTML = (codeContent, additionalClasses = '') => `
+        <pre class="notranslate"><code class="notranslate">${codeContent}</code></pre>
+        <div class="clipboard-container position-absolute right-0 top-0 ${additionalClasses}">
+            <clipboard-copy class="ClipboardButton btn m-2 p-0" role="button" style="display: inherit;">
+                <svg height="16" width="16" class="octicon octicon-copy m-2"><path d="${IconList["copy"]}"></path></svg>
+                <svg height="16" width="16" class="octicon octicon-check color-fg-success m-2 d-none"><path d="${IconList["check"]}"></path></svg>
+            </clipboard-copy>
+            <div class="copy-feedback">Copied!</div>
+        </div>
+    `;
+
+    const handleCodeElements = (selector = '') => {
+        document.querySelectorAll(selector).forEach(codeElement => {
+            const codeContent = codeElement.innerHTML;
+            const newStructure = document.createElement('div');
+            newStructure.className = 'snippet-clipboard-content position-relative overflow-auto';
+            newStructure.innerHTML = createClipboardHTML(codeContent);
+
+            const parentElement = codeElement.parentElement;
+            if (selector.includes('highlight')) {
+                parentElement.insertBefore(newStructure, codeElement.nextSibling);
+                parentElement.removeChild(codeElement);
+            } else {
+                parentElement.parentElement.replaceChild(newStructure, parentElement);
+            }
+        });
+    };
+
+    handleCodeElements('pre.notranslate > code.notranslate');
+    handleCodeElements('div.highlight > pre.notranslate');
+
+    let currentFeedback = null;
+    document.querySelectorAll('clipboard-copy').forEach(copyButton => {
+        copyButton.addEventListener('click', () => {
+            const codeContent = copyButton.closest('.snippet-clipboard-content').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const copyIcon = copyButton.querySelector('.octicon-copy');
+            const checkIcon = copyButton.querySelector('.octicon-check');
+            const copyFeedback = copyButton.nextElementSibling;
+
+            if (currentFeedback && currentFeedback !== copyFeedback) {currentFeedback.style.display = 'none';}
+            currentFeedback = copyFeedback;
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copyFeedback.style.display = 'block';
+            copyButton.style.borderColor = 'var(--color-success-fg)';
+
+            setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyFeedback.style.display = 'none';
+                copyButton.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
+
+</script>
+
+
+</html>
