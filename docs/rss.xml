@@ -1,5 +1,41 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 10:47:32 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-mq</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--mq.html</link><description>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 10:52:28 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-关系型数据库（mysql、pg）</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji---guan-xi-xing-shu-ju-ku-%EF%BC%88mysql%E3%80%81pg%EF%BC%89.html</link><description>
+# 关系型数据库核心面试知识点笔记  
+
+
+## 一、MySQL vs PostgreSQL 对比  
+
+
+### 1. 核心定位与适用场景  
+| 特性                | MySQL                                      | PostgreSQL                               |  
+|---------------------|------------------------------------------|------------------------------------------|  
+| **定位**            | 轻量级、高性能 OLTP 数据库（互联网首选）  | 企业级、支持复杂业务逻辑的通用数据库     |  
+| **适用场景**        | 高并发读写、电商/社交类业务（如订单、用户表） | 金融/政务/数据分析（需复杂 SQL、事务强一致） |  
+| **数据类型**        | 支持基础类型 + 部分扩展（如 JSON）         | 支持复杂类型（数组、枚举、JSONB、几何类型） |  
+| **事务特性**        | InnoDB 支持 ACID，默认隔离级别 RR          | 全功能 ACID，支持更细粒度锁（行级锁默认） |  
+| **扩展性**          | 依赖中间件（如 MyCat）实现分库分表         | 内置 CTE、窗口函数、自定义函数（扩展性强）|  
+
+
+### 2. 关键差异对比  
+#### （1）数据类型  
+| MySQL 特有类型       | PostgreSQL 特有类型         | 通用类型（均支持）         |  
+|---------------------|-----------------------------|----------------------------|  
+| `ENUM`、`SET`       | `ARRAY`、`HSTORE`、`JSONB`  | `INT`、`VARCHAR`、`DATE`   |  
+| `AUTO_INCREMENT`    | `SERIAL`（自增序列）         | `BLOB`、`TEXT`             |  
+
+#### （2）事务隔离级别  
+| 隔离级别            | MySQL（InnoDB）             | PostgreSQL                 |  
+|---------------------|-----------------------------|----------------------------|  
+| **读未提交**        | 支持                          | 支持                       |  
+| **读已提交**        | 支持（默认 RR，可切换）       | 支持（默认 RC）            |  
+| **可重复读**        | 默认隔离级别                 | 支持                       |  
+| **串行化**          | 支持                          | 支持                       |  
+
+#### （3）存储引擎  
+| MySQL                 | PostgreSQL                   |  
+|---------------------|-----------------------------|  
+| 多引擎架构（InnoDB/MyISAM 等） | 单引擎架构（内核集成存储逻辑）|  
+| 默认引擎 InnoDB（支持事务）   | 默认引擎 Heap（内存表）？No！默认是事务安全的存储引擎，实际PostgreSQL没有存储引擎的概念，其存储引擎是内置的，支持事务和复杂特性。</description><guid isPermaLink="true">https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji---guan-xi-xing-shu-ju-ku-%EF%BC%88mysql%E3%80%81pg%EF%BC%89.html</guid><pubDate>Fri, 30 May 2025 10:52:00 +0000</pubDate></item><item><title>求职面试笔记-mq</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--mq.html</link><description>
 # MQ（消息队列）核心面试知识点笔记  
 
 
