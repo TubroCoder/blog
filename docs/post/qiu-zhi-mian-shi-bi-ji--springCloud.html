@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
+    
+    <link rel="icon" href="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="
+# Spring Cloud 核心面试知识点笔记  
+
+
+## 一、核心注解  
+
+
+### 1. 服务注册与发现注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@EnableEurekaServer`  | 声明当前服务为 Eureka 注册中心（服务端）                              | `@EnableEurekaServer public class EurekaServerApplication { ... }`  |  
+| `@EnableDiscoveryClient` | 声明当前服务为 Eureka/Consul/Nacos 客户端（注册到注册中心）          | `@EnableDiscoveryClient public class OrderServiceApplication { ... }` |  
+
+
+### 2. 负载均衡注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@LoadBalanced`        | 标记 `RestTemplate` 或 `WebClient` 开启负载均衡（结合 Ribbon 或 Spring Cloud LoadBalancer） | `@Bean @LoadBalanced public RestTemplate restTemplate() { ... }`     |  
+
+
+### 3. 熔断器注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@HystrixCommand`      | 标记方法启用 Hystrix 熔断和降级（已过时，推荐 Resilience4J）          | `@HystrixCommand(fallbackMethod = 'fallback') public String callService() { ... }` |  
+| `@CircuitBreaker`      | Resilience4J 熔断器注解（Spring Cloud Circuit Breaker 抽象）          | `@CircuitBreaker(name = 'orderService', fallbackMethod = 'fallback')` |  
+
+
+### 4. 声明式调用注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@FeignClient`         | 声明一个 Feign 客户端接口（自动生成代理类调用远程服务）              | `@FeignClient(name = 'product-service') public interface ProductFeignClient { ... }` |  
+
+
+### 5. 配置中心注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@RefreshScope`        | 标记 Bean 支持配置动态刷新（当配置中心配置变更时，重新加载 Bean）     | `@RefreshScope @Service public class ConfigService { ... }`          |  
+
+
+## 二、核心组件详解  
+
+
+### 1. 服务注册与发现（Service Discovery）  
+**核心作用**：解决分布式系统中服务实例的动态管理（注册、发现、健康检查）。">
+<meta property="og:title" content="求职面试笔记-springCloud">
+<meta property="og:description" content="
+# Spring Cloud 核心面试知识点笔记  
+
+
+## 一、核心注解  
+
+
+### 1. 服务注册与发现注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@EnableEurekaServer`  | 声明当前服务为 Eureka 注册中心（服务端）                              | `@EnableEurekaServer public class EurekaServerApplication { ... }`  |  
+| `@EnableDiscoveryClient` | 声明当前服务为 Eureka/Consul/Nacos 客户端（注册到注册中心）          | `@EnableDiscoveryClient public class OrderServiceApplication { ... }` |  
+
+
+### 2. 负载均衡注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@LoadBalanced`        | 标记 `RestTemplate` 或 `WebClient` 开启负载均衡（结合 Ribbon 或 Spring Cloud LoadBalancer） | `@Bean @LoadBalanced public RestTemplate restTemplate() { ... }`     |  
+
+
+### 3. 熔断器注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@HystrixCommand`      | 标记方法启用 Hystrix 熔断和降级（已过时，推荐 Resilience4J）          | `@HystrixCommand(fallbackMethod = 'fallback') public String callService() { ... }` |  
+| `@CircuitBreaker`      | Resilience4J 熔断器注解（Spring Cloud Circuit Breaker 抽象）          | `@CircuitBreaker(name = 'orderService', fallbackMethod = 'fallback')` |  
+
+
+### 4. 声明式调用注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@FeignClient`         | 声明一个 Feign 客户端接口（自动生成代理类调用远程服务）              | `@FeignClient(name = 'product-service') public interface ProductFeignClient { ... }` |  
+
+
+### 5. 配置中心注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@RefreshScope`        | 标记 Bean 支持配置动态刷新（当配置中心配置变更时，重新加载 Bean）     | `@RefreshScope @Service public class ConfigService { ... }`          |  
+
+
+## 二、核心组件详解  
+
+
+### 1. 服务注册与发现（Service Discovery）  
+**核心作用**：解决分布式系统中服务实例的动态管理（注册、发现、健康检查）。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--springCloud.html">
+<meta property="og:image" content="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true">
+<title>求职面试笔记-springCloud</title>
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
+
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+.copy-feedback {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    color: var(--color-fg-on-emphasis);
+    background-color: var(--color-fg-muted);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">求职面试笔记-springCloud</h1>
+<div class="title-right">
+    <a href="https://TubroCoder.github.io/blog" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/TubroCoder/blog/issues/5" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><h1>Spring Cloud 核心面试知识点笔记</h1>
+<h2>一、核心注解</h2>
+<h3>1. 服务注册与发现注解</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>注解</th>
+<th>作用</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">@EnableEurekaServer</code></td>
+<td>声明当前服务为 Eureka 注册中心（服务端）</td>
+<td><code class="notranslate">@EnableEurekaServer public class EurekaServerApplication { ... }</code></td>
+</tr>
+<tr>
+<td><code class="notranslate">@EnableDiscoveryClient</code></td>
+<td>声明当前服务为 Eureka/Consul/Nacos 客户端（注册到注册中心）</td>
+<td><code class="notranslate">@EnableDiscoveryClient public class OrderServiceApplication { ... }</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 负载均衡注解</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>注解</th>
+<th>作用</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">@LoadBalanced</code></td>
+<td>标记 <code class="notranslate">RestTemplate</code> 或 <code class="notranslate">WebClient</code> 开启负载均衡（结合 Ribbon 或 Spring Cloud LoadBalancer）</td>
+<td><code class="notranslate">@Bean @LoadBalanced public RestTemplate restTemplate() { ... }</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>3. 熔断器注解</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>注解</th>
+<th>作用</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">@HystrixCommand</code></td>
+<td>标记方法启用 Hystrix 熔断和降级（已过时，推荐 Resilience4J）</td>
+<td><code class="notranslate">@HystrixCommand(fallbackMethod = "fallback") public String callService() { ... }</code></td>
+</tr>
+<tr>
+<td><code class="notranslate">@CircuitBreaker</code></td>
+<td>Resilience4J 熔断器注解（Spring Cloud Circuit Breaker 抽象）</td>
+<td><code class="notranslate">@CircuitBreaker(name = "orderService", fallbackMethod = "fallback")</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>4. 声明式调用注解</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>注解</th>
+<th>作用</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">@FeignClient</code></td>
+<td>声明一个 Feign 客户端接口（自动生成代理类调用远程服务）</td>
+<td><code class="notranslate">@FeignClient(name = "product-service") public interface ProductFeignClient { ... }</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>5. 配置中心注解</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>注解</th>
+<th>作用</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">@RefreshScope</code></td>
+<td>标记 Bean 支持配置动态刷新（当配置中心配置变更时，重新加载 Bean）</td>
+<td><code class="notranslate">@RefreshScope @Service public class ConfigService { ... }</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>二、核心组件详解</h2>
+<h3>1. 服务注册与发现（Service Discovery）</h3>
+<p><strong>核心作用</strong>：解决分布式系统中服务实例的动态管理（注册、发现、健康检查）。</p>
+<h4>典型组件：Eureka / Nacos</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>Eureka</th>
+<th>Nacos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>注册中心类型</td>
+<td>AP（可用优先，牺牲强一致性）</td>
+<td>支持 AP/CP 模式（可切换）</td>
+</tr>
+<tr>
+<td>健康检查</td>
+<td>客户端心跳（默认 30s）</td>
+<td>客户端心跳 + 服务端主动检查</td>
+</tr>
+<tr>
+<td>自我保护机制</td>
+<td>开启（防止误删存活实例）</td>
+<td>支持（可配置）</td>
+</tr>
+<tr>
+<td>配置中心集成</td>
+<td>无（需额外整合 Spring Cloud Config）</td>
+<td>内置配置中心（Nacos Config）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h4>服务注册流程（以 Eureka 为例）</h4>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">sequenceDiagram</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">Service</span> <span class="pl-k">as</span> <span class="pl-ent">服务实例（如 OrderService）</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">Eureka</span> <span class="pl-k">as</span> <span class="pl-ent">Eureka Server</span>
+    <span class="pl-ent">Service</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Eureka</span><span class="pl-k">:</span> <span class="pl-s">启动时发送 POST /eureka/apps/{appId} 注册（携带 IP、端口、元数据）</span>
+    <span class="pl-ent">Eureka</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Service</span><span class="pl-k">:</span> <span class="pl-s">返回 204 表示注册成功</span>
+    <span class="pl-ent">Service</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Eureka</span><span class="pl-k">:</span> <span class="pl-s">每 30s 发送 PUT /eureka/apps/{appId}/{instanceId} 心跳</span>
+    <span class="pl-ent">Eureka</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Service</span><span class="pl-k">:</span> <span class="pl-s">心跳超时（90s）则标记为不可用，最终剔除</span></pre></div>
+<h3>2. 负载均衡（Load Balancing）</h3>
+<p><strong>核心作用</strong>：将请求均匀分发到多个服务实例，避免单点压力过大。</p>
+<h4>典型组件：Ribbon（已淘汰） / Spring Cloud LoadBalancer</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>Ribbon</th>
+<th>Spring Cloud LoadBalancer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>状态</td>
+<td>已停止维护</td>
+<td>官方推荐（轻量、支持 Reactor）</td>
+</tr>
+<tr>
+<td>负载策略</td>
+<td>轮询、随机、权重等（可自定义）</td>
+<td>轮询、随机（默认），支持自定义策略</td>
+</tr>
+<tr>
+<td>集成方式</td>
+<td>与 Feign 深度绑定</td>
+<td>独立组件，支持 RestTemplate/WebClient</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h4>代码示例：LoadBalanced RestTemplate</h4>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-c1">@</span><span class="pl-c1">Configuration</span>
+<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-smi">LoadBalancerConfig</span> {
+    <span class="pl-c1">@</span><span class="pl-c1">Bean</span>
+    <span class="pl-c1">@</span><span class="pl-c1">LoadBalanced</span> <span class="pl-c">// 开启负载均衡</span>
+    <span class="pl-k">public</span> <span class="pl-smi">RestTemplate</span> <span class="pl-en">restTemplate</span>() {
+        <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-smi">RestTemplate</span>();
+    }
+}
+
+<span class="pl-c1">@</span><span class="pl-c1">Service</span>
+<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-smi">OrderService</span> {
+    <span class="pl-c1">@</span><span class="pl-c1">Autowired</span>
+    <span class="pl-k">private</span> <span class="pl-smi">RestTemplate</span> <span class="pl-s1">restTemplate</span>;
+
+    <span class="pl-k">public</span> <span class="pl-smi">String</span> <span class="pl-en">getProductInfo</span>() {
+        <span class="pl-c">// 直接使用服务名（如 "product-service"）调用，LoadBalanced 自动解析实例</span>
+        <span class="pl-k">return</span> <span class="pl-s1">restTemplate</span>.<span class="pl-en">getForObject</span>(<span class="pl-s">"http://product-service/api/product"</span>, <span class="pl-smi">String</span>.<span class="pl-k">class</span>);
+    }
+}</pre></div>
+<h3>3. 熔断器（Circuit Breaker）</h3>
+<p><strong>核心作用</strong>：防止服务雪崩（某个服务故障时，快速拒绝后续请求，避免级联失败）。</p>
+<h4>典型组件：Hystrix（已淘汰） / Resilience4J</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>Hystrix</th>
+<th>Resilience4J</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>状态</td>
+<td>已停止维护</td>
+<td>活跃维护（轻量、支持函数式编程）</td>
+</tr>
+<tr>
+<td>熔断条件</td>
+<td>错误率 ≥50% + 一定时间内请求数 ≥20</td>
+<td>可配置错误率、慢请求率、异常类型</td>
+</tr>
+<tr>
+<td>降级方式</td>
+<td>注解 <code class="notranslate">@HystrixCommand</code></td>
+<td>注解 <code class="notranslate">@CircuitBreaker</code> 或编程式</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h4>熔断状态机（Resilience4J）</h4>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">LR</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>关闭状态<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">{</span></span>请求失败率≥阈值?<span class="pl-pds"><span class="pl-sg">}</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">是</span><span class="pl-k">|</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>开启状态（拒绝所有请求）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">否</span><span class="pl-k">|</span> <span class="pl-ent">A</span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>经过重置时间后转为半开状态<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">D</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">E</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">{</span></span>部分请求成功?<span class="pl-pds"><span class="pl-sg">}</span></span></span>
+    <span class="pl-ent">E</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">是</span><span class="pl-k">|</span> <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>关闭状态<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">E</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">否</span><span class="pl-k">|</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>开启状态<span class="pl-pds"><span class="pl-sg">]</span></span></span></pre></div>
+<h3>4. 网关（API Gateway）</h3>
+<p><strong>核心作用</strong>：统一入口，提供路由、鉴权、限流、日志等功能。</p>
+<h4>典型组件：Zuul 1.x（已淘汰） / Spring Cloud Gateway</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>Zuul 1.x</th>
+<th>Spring Cloud Gateway</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>架构</td>
+<td>同步 I/O（基于 Servlet）</td>
+<td>异步非阻塞（基于 Reactor + Netty）</td>
+</tr>
+<tr>
+<td>路由规则</td>
+<td>简单路径匹配</td>
+<td>支持谓词（Predicate）+ 过滤器（Filter）</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>低（同步阻塞）</td>
+<td>高（异步非阻塞，适合高并发）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h4>配置示例：Gateway 路由规则</h4>
+<div class="highlight highlight-source-yaml"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> application.yml</span>
+<span class="pl-ent">spring</span>:
+  <span class="pl-ent">cloud</span>:
+    <span class="pl-ent">gateway</span>:
+      <span class="pl-ent">routes</span>:
+        - <span class="pl-ent">id</span>: <span class="pl-s">product_route</span>
+          <span class="pl-ent">uri</span>: <span class="pl-s">lb://product-service </span><span class="pl-c"><span class="pl-c">#</span> 负载均衡到 product-service</span>
+          <span class="pl-ent">predicates</span>:
+            - <span class="pl-s">Path=/product/** </span><span class="pl-c"><span class="pl-c">#</span> 匹配 /product 开头的请求</span>
+          <span class="pl-ent">filters</span>:
+            - <span class="pl-s">StripPrefix=1 </span><span class="pl-c"><span class="pl-c">#</span> 去除路径前缀（/product 转为空）</span>
+            - <span class="pl-s">AddRequestHeader=X-Request-From, Gateway </span><span class="pl-c"><span class="pl-c">#</span> 添加请求头</span></pre></div>
+<h3>5. 配置中心（Config Server）</h3>
+<p><strong>核心作用</strong>：集中管理分布式系统的配置（开发/测试/生产环境分离，支持动态刷新）。</p>
+<h4>典型组件：Spring Cloud Config / Nacos Config</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>Spring Cloud Config</th>
+<th>Nacos Config</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>存储方式</td>
+<td>Git/SVN（需额外搭建仓库）</td>
+<td>内置数据库（如 MySQL）或文件系统</td>
+</tr>
+<tr>
+<td>动态刷新</td>
+<td>需手动调用 <code class="notranslate">/actuator/refresh</code> 或结合 Bus</td>
+<td>自动推送（长轮询/WebSocket）</td>
+</tr>
+<tr>
+<td>多环境支持</td>
+<td>通过 <code class="notranslate">{application}-{profile}.properties</code></td>
+<td>支持命名空间、分组、版本管理</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h4>动态刷新流程（Spring Cloud Config）</h4>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">TD</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>修改 Git 仓库配置文件<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Config Server 检测到 Git 变更<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>客户端（标记 @RefreshScope 的 Bean）通过 /actuator/refresh 接口刷新配置<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Bean 重新初始化，使用新配置<span class="pl-pds"><span class="pl-sg">]</span></span></span></pre></div>
+<h2>三、分布式事务详解</h2>
+<h3>1. 分布式事务挑战</h3>
+<p>分布式系统中，跨服务的事务（如“下单+扣库存+减积分”）无法通过本地事务（<code class="notranslate">@Transactional</code>）保证一致性，需通过分布式事务方案解决。</p>
+<h3>2. 强一致性方案：2PC（两阶段提交）</h3>
+<p><strong>核心思想</strong>：通过协调者（Coordinator）控制所有参与者（Participant）的事务提交，分为“准备阶段”和“提交阶段”。</p>
+<h4>2PC 流程</h4>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">sequenceDiagram</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">Coordinator</span> <span class="pl-k">as</span> <span class="pl-ent">协调者</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">P1</span> <span class="pl-k">as</span> <span class="pl-ent">参与者1（库存服务）</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">P2</span> <span class="pl-k">as</span> <span class="pl-ent">参与者2（积分服务）</span>
+    <span class="pl-ent">Coordinator</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">P1</span><span class="pl-k">:</span> <span class="pl-s">准备扣库存（Can you commit?）</span>
+    <span class="pl-ent">P1</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Coordinator</span><span class="pl-k">:</span> <span class="pl-s">准备完成（Yes）</span>
+    <span class="pl-ent">Coordinator</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">P2</span><span class="pl-k">:</span> <span class="pl-s">准备减积分（Can you commit?）</span>
+    <span class="pl-ent">P2</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Coordinator</span><span class="pl-k">:</span> <span class="pl-s">准备完成（Yes）</span>
+    <span class="pl-ent">Coordinator</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">P1</span><span class="pl-k">:</span> <span class="pl-s">提交事务（Commit）</span>
+    <span class="pl-ent">P1</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Coordinator</span><span class="pl-k">:</span> <span class="pl-s">提交成功（Ack）</span>
+    <span class="pl-ent">Coordinator</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">P2</span><span class="pl-k">:</span> <span class="pl-s">提交事务（Commit）</span>
+    <span class="pl-ent">P2</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Coordinator</span><span class="pl-k">:</span> <span class="pl-s">提交成功（Ack）</span></pre></div>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>同步阻塞（参与者在准备阶段需锁定资源）；</li>
+<li>单点故障（协调者宕机导致事务卡住）；</li>
+<li>网络异常时可能数据不一致（如提交阶段部分参与者未收到指令）。</li>
+</ul>
+<h3>3. 弱一致性方案</h3>
+<p>弱一致性通过“最终一致”替代“强一致”，适合高并发场景（如电商、社交）。</p>
+<h4>方案 1：TCC（Try-Confirm-Cancel）</h4>
+<p><strong>核心思想</strong>：将事务拆分为三个阶段，允许业务层自定义补偿逻辑。</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>阶段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Try（尝试）</td>
+<td>预留资源（如锁定库存、冻结积分），不实际扣减</td>
+</tr>
+<tr>
+<td>Confirm（确认）</td>
+<td>提交事务（实际扣减预留的资源）</td>
+</tr>
+<tr>
+<td>Cancel（取消）</td>
+<td>回滚事务（释放预留的资源）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p><strong>示例：下单场景</strong></p>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-c">// 库存服务 TCC 接口</span>
+<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-smi">StockService</span> {
+    <span class="pl-c">// Try：锁定库存</span>
+    <span class="pl-c1">@</span><span class="pl-c1">Transactional</span>
+    <span class="pl-k">public</span> <span class="pl-smi">boolean</span> <span class="pl-en">tryDeduct</span>(<span class="pl-smi">String</span> <span class="pl-s1">productId</span>, <span class="pl-smi">int</span> <span class="pl-s1">count</span>) {
+        <span class="pl-k">return</span> <span class="pl-s1">stockMapper</span>.<span class="pl-en">lockStock</span>(<span class="pl-s1">productId</span>, <span class="pl-s1">count</span>) &gt; <span class="pl-c1">0</span>;
+    }
+
+    <span class="pl-c">// Confirm：实际扣减库存</span>
+    <span class="pl-c1">@</span><span class="pl-c1">Transactional</span>
+    <span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">confirmDeduct</span>(<span class="pl-smi">String</span> <span class="pl-s1">productId</span>, <span class="pl-smi">int</span> <span class="pl-s1">count</span>) {
+        <span class="pl-s1">stockMapper</span>.<span class="pl-en">deductStock</span>(<span class="pl-s1">productId</span>, <span class="pl-s1">count</span>);
+    }
+
+    <span class="pl-c">// Cancel：释放锁定的库存</span>
+    <span class="pl-c1">@</span><span class="pl-c1">Transactional</span>
+    <span class="pl-k">public</span> <span class="pl-smi">void</span> <span class="pl-en">cancelDeduct</span>(<span class="pl-smi">String</span> <span class="pl-s1">productId</span>, <span class="pl-smi">int</span> <span class="pl-s1">count</span>) {
+        <span class="pl-s1">stockMapper</span>.<span class="pl-en">unlockStock</span>(<span class="pl-s1">productId</span>, <span class="pl-s1">count</span>);
+    }
+}</pre></div>
+<h4>方案 2：Saga 模式（长事务分解）</h4>
+<p><strong>核心思想</strong>：将长事务拆分为多个短事务（Saga），每个短事务成功后执行下一个，失败时通过补偿事务回滚之前的操作。</p>
+<p><strong>示例：订单流程</strong></p>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">LR</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>创建订单<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>扣库存<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>减积分<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>支付<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">D</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">E</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>完成<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">D</span><span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">失败</span><span class="pl-k">|</span> <span class="pl-ent">F</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>回滚支付<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">F</span><span class="pl-k">--&gt;</span><span class="pl-ent">G</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>恢复积分<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">G</span><span class="pl-k">--&gt;</span><span class="pl-ent">H</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>恢复库存<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">H</span><span class="pl-k">--&gt;</span><span class="pl-ent">I</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>取消订单<span class="pl-pds"><span class="pl-sg">]</span></span></span></pre></div>
+<h4>方案 3：事务消息（基于 MQ）</h4>
+<p><strong>核心思想</strong>：通过消息队列（如 RocketMQ、Kafka）保证“业务操作”与“消息发送”的原子性，最终达到一致。</p>
+<p><strong>流程示例（RocketMQ 事务消息）</strong></p>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">sequenceDiagram</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">Order</span> <span class="pl-k">as</span> <span class="pl-ent">订单服务</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">MQ</span> <span class="pl-k">as</span> <span class="pl-ent">RocketMQ</span>
+    <span class="pl-k">participant</span> <span class="pl-ent">Stock</span> <span class="pl-k">as</span> <span class="pl-ent">库存服务</span>
+    <span class="pl-ent">Order</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">MQ</span><span class="pl-k">:</span> <span class="pl-s">发送半消息（扣库存）</span>
+    <span class="pl-ent">MQ</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Order</span><span class="pl-k">:</span> <span class="pl-s">半消息发送成功（状态为 UNKNOWN）</span>
+    <span class="pl-ent">Order</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Order</span><span class="pl-k">:</span> <span class="pl-s">本地创建订单（成功）</span>
+    <span class="pl-ent">Order</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">MQ</span><span class="pl-k">:</span> <span class="pl-s">提交半消息（状态改为 COMMIT）</span>
+    <span class="pl-ent">MQ</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Stock</span><span class="pl-k">:</span> <span class="pl-s">推送消息（扣库存）</span>
+    <span class="pl-ent">Stock</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Stock</span><span class="pl-k">:</span> <span class="pl-s">扣库存（成功）</span></pre></div>
+<h3>4. 方案对比与选择</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>方案</th>
+<th>一致性级别</th>
+<th>复杂度</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2PC</td>
+<td>强一致性</td>
+<td>高（需协调者）</td>
+<td>金融交易（如跨行转账）</td>
+</tr>
+<tr>
+<td>TCC</td>
+<td>最终一致</td>
+<td>高（需自定义补偿）</td>
+<td>资源预留场景（如秒杀、订单）</td>
+</tr>
+<tr>
+<td>Saga</td>
+<td>最终一致</td>
+<td>中（需分解事务）</td>
+<td>长流程事务（如电商订单全流程）</td>
+</tr>
+<tr>
+<td>事务消息</td>
+<td>最终一致</td>
+<td>低（依赖 MQ）</td>
+<td>异步通知场景（如下单后发优惠券）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>四、总结</h2>
+<h3>面试高频问题总结</h3>
+<ol>
+<li>
+<p><strong>Eureka 与 Nacos 的区别？</strong><br>
+答：Eureka 是 AP 型注册中心，Nacos 支持 AP/CP 模式；Nacos 内置配置中心，Eureka 需整合 Spring Cloud Config；Nacos 健康检查更灵活（服务端主动检查）。</p>
+</li>
+<li>
+<p><strong>负载均衡策略有哪些？</strong><br>
+答：轮询（默认）、随机、权重、最小连接数等；Spring Cloud LoadBalancer 支持自定义策略（实现 <code class="notranslate">ReactorServiceInstanceLoadBalancer</code>）。</p>
+</li>
+<li>
+<p><strong>熔断器的作用？</strong><br>
+答：防止服务雪崩，当被调用服务故障时，快速返回降级结果，避免故障扩散。</p>
+</li>
+<li>
+<p><strong>分布式事务如何选择方案？</strong><br>
+答：强一致性选 2PC（如金融）；高并发场景选 TCC/Saga/事务消息（如电商）；需自定义补偿逻辑选 TCC；长流程选 Saga；异步通知选事务消息。</p>
+</li>
+</ol>
+<p>通过本文的梳理，可系统掌握 Spring Cloud 核心组件和分布式事务解决方案，应对面试中的深度提问。</p></div>
+<div style="font-size:small;margin-top:8px;float:right;"></div>
+
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+
+</div>
+    <div id="footer"><div id="footer1">Copyright © <span id="copyrightYear"></span> <a href="https://TubroCoder.github.io/blog">Tubro‘s blog</a></div>
+<div id="footer2">
+    <span id="runday"></span><span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a></span>
+</div>
+
+<script>
+var now=new Date();
+document.getElementById("copyrightYear").innerHTML=now.getFullYear();
+
+if(""!=""){
+    var startSite=new Date("");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+}
+</script></div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z', 'copy': 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z', 'check': 'M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","TubroCoder/blog");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const createClipboardHTML = (codeContent, additionalClasses = '') => `
+        <pre class="notranslate"><code class="notranslate">${codeContent}</code></pre>
+        <div class="clipboard-container position-absolute right-0 top-0 ${additionalClasses}">
+            <clipboard-copy class="ClipboardButton btn m-2 p-0" role="button" style="display: inherit;">
+                <svg height="16" width="16" class="octicon octicon-copy m-2"><path d="${IconList["copy"]}"></path></svg>
+                <svg height="16" width="16" class="octicon octicon-check color-fg-success m-2 d-none"><path d="${IconList["check"]}"></path></svg>
+            </clipboard-copy>
+            <div class="copy-feedback">Copied!</div>
+        </div>
+    `;
+
+    const handleCodeElements = (selector = '') => {
+        document.querySelectorAll(selector).forEach(codeElement => {
+            const codeContent = codeElement.innerHTML;
+            const newStructure = document.createElement('div');
+            newStructure.className = 'snippet-clipboard-content position-relative overflow-auto';
+            newStructure.innerHTML = createClipboardHTML(codeContent);
+
+            const parentElement = codeElement.parentElement;
+            if (selector.includes('highlight')) {
+                parentElement.insertBefore(newStructure, codeElement.nextSibling);
+                parentElement.removeChild(codeElement);
+            } else {
+                parentElement.parentElement.replaceChild(newStructure, parentElement);
+            }
+        });
+    };
+
+    handleCodeElements('pre.notranslate > code.notranslate');
+    handleCodeElements('div.highlight > pre.notranslate');
+
+    let currentFeedback = null;
+    document.querySelectorAll('clipboard-copy').forEach(copyButton => {
+        copyButton.addEventListener('click', () => {
+            const codeContent = copyButton.closest('.snippet-clipboard-content').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const copyIcon = copyButton.querySelector('.octicon-copy');
+            const checkIcon = copyButton.querySelector('.octicon-check');
+            const copyFeedback = copyButton.nextElementSibling;
+
+            if (currentFeedback && currentFeedback !== copyFeedback) {currentFeedback.style.display = 'none';}
+            currentFeedback = copyFeedback;
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copyFeedback.style.display = 'block';
+            copyButton.style.borderColor = 'var(--color-success-fg)';
+
+            setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyFeedback.style.display = 'none';
+                copyButton.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
+
+</script>
+
+
+</html>

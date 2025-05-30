@@ -1,5 +1,48 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 10:22:23 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-springboot</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--springboot.html</link><description>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 10:28:58 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-springCloud</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--springCloud.html</link><description>
+# Spring Cloud 核心面试知识点笔记  
+
+
+## 一、核心注解  
+
+
+### 1. 服务注册与发现注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@EnableEurekaServer`  | 声明当前服务为 Eureka 注册中心（服务端）                              | `@EnableEurekaServer public class EurekaServerApplication { ... }`  |  
+| `@EnableDiscoveryClient` | 声明当前服务为 Eureka/Consul/Nacos 客户端（注册到注册中心）          | `@EnableDiscoveryClient public class OrderServiceApplication { ... }` |  
+
+
+### 2. 负载均衡注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@LoadBalanced`        | 标记 `RestTemplate` 或 `WebClient` 开启负载均衡（结合 Ribbon 或 Spring Cloud LoadBalancer） | `@Bean @LoadBalanced public RestTemplate restTemplate() { ... }`     |  
+
+
+### 3. 熔断器注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@HystrixCommand`      | 标记方法启用 Hystrix 熔断和降级（已过时，推荐 Resilience4J）          | `@HystrixCommand(fallbackMethod = 'fallback') public String callService() { ... }` |  
+| `@CircuitBreaker`      | Resilience4J 熔断器注解（Spring Cloud Circuit Breaker 抽象）          | `@CircuitBreaker(name = 'orderService', fallbackMethod = 'fallback')` |  
+
+
+### 4. 声明式调用注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@FeignClient`         | 声明一个 Feign 客户端接口（自动生成代理类调用远程服务）              | `@FeignClient(name = 'product-service') public interface ProductFeignClient { ... }` |  
+
+
+### 5. 配置中心注解  
+| 注解                  | 作用                                                                 | 示例                                                                 |  
+|-----------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|  
+| `@RefreshScope`        | 标记 Bean 支持配置动态刷新（当配置中心配置变更时，重新加载 Bean）     | `@RefreshScope @Service public class ConfigService { ... }`          |  
+
+
+## 二、核心组件详解  
+
+
+### 1. 服务注册与发现（Service Discovery）  
+**核心作用**：解决分布式系统中服务实例的动态管理（注册、发现、健康检查）。</description><guid isPermaLink="true">https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--springCloud.html</guid><pubDate>Fri, 30 May 2025 10:28:33 +0000</pubDate></item><item><title>求职面试笔记-springboot</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--springboot.html</link><description>
 # Spring Boot 核心面试知识点笔记  
 
 
