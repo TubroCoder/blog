@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
+    
+    <link rel="icon" href="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="
+# Linux 核心面试知识点笔记  
+
+
+## 一、Linux 基础概念  
+
+
+### 1. Linux 内核与发行版  
+#### （1）内核 vs 发行版  
+- **内核（Kernel）**：操作系统核心，负责进程调度、内存管理、硬件驱动、文件系统等底层功能（如 Linux 5.15.x）。">
+<meta property="og:title" content="求职面试笔记-Linux">
+<meta property="og:description" content="
+# Linux 核心面试知识点笔记  
+
+
+## 一、Linux 基础概念  
+
+
+### 1. Linux 内核与发行版  
+#### （1）内核 vs 发行版  
+- **内核（Kernel）**：操作系统核心，负责进程调度、内存管理、硬件驱动、文件系统等底层功能（如 Linux 5.15.x）。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--Linux.html">
+<meta property="og:image" content="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true">
+<title>求职面试笔记-Linux</title>
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
+
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+.copy-feedback {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    color: var(--color-fg-on-emphasis);
+    background-color: var(--color-fg-muted);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">求职面试笔记-Linux</h1>
+<div class="title-right">
+    <a href="https://TubroCoder.github.io/blog" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/TubroCoder/blog/issues/11" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><h1>Linux 核心面试知识点笔记</h1>
+<h2>一、Linux 基础概念</h2>
+<h3>1. Linux 内核与发行版</h3>
+<h4>（1）内核 vs 发行版</h4>
+<ul>
+<li><strong>内核（Kernel）</strong>：操作系统核心，负责进程调度、内存管理、硬件驱动、文件系统等底层功能（如 Linux 5.15.x）。</li>
+<li><strong>发行版（Distro）</strong>：基于内核的完整操作系统，包含 GNU 工具、桌面环境等（如 Ubuntu、CentOS、Debian、Red Hat）。</li>
+</ul>
+<h4>（2）GNU 工具链</h4>
+<ul>
+<li>核心组件：<code class="notranslate">gcc</code>（编译器）、<code class="notranslate">glibc</code>（标准库）、<code class="notranslate">bash</code>（命令解释器）、<code class="notranslate">make</code>（构建工具）。</li>
+<li>作用：提供用户空间工具，实现与内核交互（如 <code class="notranslate">ls</code>、<code class="notranslate">cp</code>、<code class="notranslate">rm</code> 均为用户态程序）。</li>
+</ul>
+<h3>2. 系统启动流程</h3>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">TD</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>加电自检 BIOS/UEFI<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>加载引导程序 GRUB/LILO<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>加载 Linux 内核（vmlinuz）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>初始化内核模块（initrd/initramfs）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">D</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">E</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>启动第一个进程 init（systemd/sysvinit）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">E</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">F</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>启动服务（systemd.target）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">F</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">G</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>登录界面（图形/命令行）<span class="pl-pds"><span class="pl-sg">]</span></span></span></pre></div>
+<h3>3. 高频面试问题</h3>
+<p><strong>Q：用户态与内核态的区别？</strong><br>
+A：</p>
+<ul>
+<li><strong>用户态</strong>：程序运行在低权限模式，不能直接访问硬件和内核资源（如普通 <code class="notranslate">ls</code> 命令）；</li>
+<li><strong>内核态</strong>：操作系统内核运行在高权限模式，可直接操作硬件（如通过系统调用 <code class="notranslate">open()</code> 访问文件）。</li>
+</ul>
+<p><strong>Q：systemd 与 sysvinit 的区别？</strong><br>
+A：</p>
+<ul>
+<li>systemd（Linux 主流）：并行启动服务（加快启动速度），支持服务依赖管理（如 <code class="notranslate">network.target</code> 依赖 <code class="notranslate">syslog.service</code>）；</li>
+<li>sysvinit（传统）：串行启动服务（启动慢），依赖脚本 <code class="notranslate">rc0.d</code>-<code class="notranslate">rc6.d</code> 管理运行级别。</li>
+</ul>
+<h2>二、文件系统与磁盘管理</h2>
+<h3>1. 文件系统核心概念</h3>
+<h4>（1）常见文件系统</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>文件系统</th>
+<th>特点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>EXT4</strong></td>
+<td>主流日志文件系统，支持大文件（16TB）、延迟分配、多块分配</td>
+<td>Linux 通用场景（默认）</td>
+</tr>
+<tr>
+<td><strong>XFS</strong></td>
+<td>高性能日志文件系统，支持超大文件（8EB）、并行 I/O（适合数据库）</td>
+<td>高吞吐量存储（如 MySQL）</td>
+</tr>
+<tr>
+<td><strong>NFS</strong></td>
+<td>网络文件系统，允许多主机共享文件（通过 RPC 协议）</td>
+<td>分布式存储（如 Hadoop）</td>
+</tr>
+<tr>
+<td><strong>swap</strong></td>
+<td>交换分区，内存不足时将数据写入磁盘（提升系统可用性，降低性能）</td>
+<td>临时内存扩展</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h4>（2）inode 与 block</h4>
+<ul>
+<li><strong>inode</strong>：存储文件元信息（权限、大小、创建时间、数据块指针），每个文件唯一；</li>
+<li><strong>block</strong>：实际存储数据的物理单元（通常 4KB），通过 inode 指针索引。</li>
+</ul>
+<p><strong>查看 inode 命令</strong>：</p>
+<div class="highlight highlight-source-shell"><pre class="notranslate">stat filename  <span class="pl-c"><span class="pl-c">#</span> 查看文件 inode 信息</span>
+ls -i filename  <span class="pl-c"><span class="pl-c">#</span> 查看文件 inode 编号</span></pre></div>
+<h3>2. 文件权限与管理</h3>
+<h4>（1）权限模型（rwx 755 含义）</h4>
+<ul>
+<li><strong>用户（User）</strong>：文件所有者（<code class="notranslate">u</code>），所属组（<code class="notranslate">g</code>），其他用户（<code class="notranslate">o</code>）；</li>
+<li><strong>权限位</strong>：读（<code class="notranslate">r=4</code>）、写（<code class="notranslate">w=2</code>）、执行（<code class="notranslate">x=1</code>）；</li>
+<li><strong>示例</strong>：<code class="notranslate">755</code> = <code class="notranslate">rwx</code>（用户） + <code class="notranslate">r-x</code>（组） + <code class="notranslate">r-x</code>（其他）。</li>
+</ul>
+<h4>（2）权限操作命令</h4>
+<div class="highlight highlight-source-shell"><pre class="notranslate">chmod 755 dir/          <span class="pl-c"><span class="pl-c">#</span> 修改目录权限</span>
+chown user:group file   <span class="pl-c"><span class="pl-c">#</span> 修改文件所有者和所属组</span>
+<span class="pl-c1">umask</span> 022               <span class="pl-c"><span class="pl-c">#</span> 设置默认权限掩码（新建文件默认权限 = 666 - umask）</span></pre></div>
+<h3>3. 软硬链接对比</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>硬链接（hard link）</th>
+<th>软链接（symbolic link）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本质</td>
+<td>多个文件名指向同一个 inode</td>
+<td>独立文件，存储目标文件路径</td>
+</tr>
+<tr>
+<td>删除原文件</td>
+<td>不影响硬链接（inode 计数&gt;0）</td>
+<td>软链接失效（指向不存在的路径）</td>
+</tr>
+<tr>
+<td>文件类型</td>
+<td>与原文件类型一致</td>
+<td>类型为 <code class="notranslate">lndir</code>（符号链接）</td>
+</tr>
+<tr>
+<td>跨分区</td>
+<td>不支持</td>
+<td>支持</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p><strong>创建命令</strong>：</p>
+<div class="highlight highlight-source-shell"><pre class="notranslate">ln source_file hard_link  <span class="pl-c"><span class="pl-c">#</span> 硬链接</span>
+ln -s source_file soft_link  <span class="pl-c"><span class="pl-c">#</span> 软链接</span></pre></div>
+<h2>三、进程与线程管理</h2>
+<h3>1. 进程基础</h3>
+<h4>（1）进程状态（5 种核心状态）</h4>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">LR</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>运行态（Running）<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>就绪态（Ready）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">A</span>
+    <span class="pl-ent">A</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>阻塞态（Blocked）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span>
+    <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>创建态（New）<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span>
+    <span class="pl-ent">E</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>终止态（Terminated）<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">&lt;--</span><span class="pl-s">进程结束</span><span class="pl-k">--&gt;</span> <span class="pl-ent">A</span></pre></div>
+<h4>（2）进程间通信（IPC）方式</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>方式</th>
+<th>特点</th>
+<th>示例场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>管道（Pipe）</td>
+<td>半双工，仅支持父子进程通信</td>
+<td>命令管道 `ls</td>
+</tr>
+<tr>
+<td>共享内存</td>
+<td>最高效，需配合信号量/互斥锁同步</td>
+<td>大数据共享（如机器学习）</td>
+</tr>
+<tr>
+<td>套接字（Socket）</td>
+<td>支持跨主机通信，TCP/UDP 均可</td>
+<td>网络服务（如 Web 服务器）</td>
+</tr>
+<tr>
+<td>信号（Signal）</td>
+<td>异步通知（如 <code class="notranslate">kill -9</code> 发送终止信号）</td>
+<td>进程异常处理</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 进程管理命令</h3>
+<h4>（1）进程查看</h4>
+<div class="highlight highlight-source-shell"><pre class="notranslate">ps aux        <span class="pl-c"><span class="pl-c">#</span> 查看所有进程（BSD 格式）</span>
+ps -ef        <span class="pl-c"><span class="pl-c">#</span> 查看所有进程（System V 格式，显示 PID/PPID）</span>
+top           <span class="pl-c"><span class="pl-c">#</span> 实时监控进程（按 CPU/内存排序，常用交互键：P（CPU）、M（内存）、k（杀进程））</span>
+htop          <span class="pl-c"><span class="pl-c">#</span> 增强版 top，支持树状进程视图</span></pre></div>
+<h4>（2）进程控制</h4>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c1">kill</span> PID      <span class="pl-c"><span class="pl-c">#</span> 发送默认信号 SIGTERM（15）</span>
+<span class="pl-c1">kill</span> -9 PID    <span class="pl-c"><span class="pl-c">#</span> 发送强制终止信号 SIGKILL（9）</span>
+nohup <span class="pl-c1">command</span> <span class="pl-k">&amp;</span>  <span class="pl-c"><span class="pl-c">#</span> 后台运行命令，忽略挂断信号（日志输出到 nohup.out）</span></pre></div>
+<h3>3. 线程 vs 进程</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>进程</th>
+<th>线程</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资源分配</td>
+<td>独立地址空间、文件描述符等</td>
+<td>共享进程资源（地址空间、打开文件）</td>
+</tr>
+<tr>
+<td>调度单位</td>
+<td>传统调度单位</td>
+<td>现代调度单位（CPU 调度到线程）</td>
+</tr>
+<tr>
+<td>上下文切换</td>
+<td>开销大（涉及地址空间切换）</td>
+<td>开销小（仅寄存器、栈切换）</td>
+</tr>
+<tr>
+<td>并发模型</td>
+<td>多进程（如 Apache  prefork）</td>
+<td>多线程（如 Nginx worker 线程）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>4. 高频面试问题</h3>
+<p><strong>Q：僵尸进程如何产生？如何处理？</strong><br>
+A：</p>
+<ul>
+<li><strong>产生</strong>：子进程结束，父进程未调用 <code class="notranslate">wait()</code>/<code class="notranslate">waitpid()</code> 回收资源，状态变为 <code class="notranslate">Zombie（Z）</code>；</li>
+<li><strong>处理</strong>：
+<ol>
+<li>杀死父进程（僵尸进程会被 init 进程收养并回收）；</li>
+<li>编写父进程代码回收子进程（<code class="notranslate">wait(NULL)</code>）。</li>
+</ol>
+</li>
+</ul>
+<p><strong>Q：孤儿进程如何处理？</strong><br>
+A：父进程提前终止，子进程被 init 进程（PID=1）收养，init 进程会定期回收孤儿进程资源。</p>
+<h2>四、网络基础与配置</h2>
+<h3>1. TCP/IP 协议栈（四层模型）</h3>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">TD</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>应用层（HTTP/FTP/SMTP）<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>传输层（TCP/UDP）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>网络层（IP/ICMP/ARP）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>数据链路层（Ethernet/PPP）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">D</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">E</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>物理层（网卡/电缆）<span class="pl-pds"><span class="pl-sg">]</span></span></span></pre></div>
+<h3>2. 常用网络命令</h3>
+<h4>（1）网络诊断</h4>
+<div class="highlight highlight-source-shell"><pre class="notranslate">ping IP       <span class="pl-c"><span class="pl-c">#</span> 测试网络连通性（ICMP 协议）</span>
+traceroute IP <span class="pl-c"><span class="pl-c">#</span> 追踪路由路径（记录每跳延迟）</span>
+nslookup domain <span class="pl-c"><span class="pl-c">#</span> 域名解析（查询 DNS 服务器）</span></pre></div>
+<h4>（2）端口与进程</h4>
+<div class="highlight highlight-source-shell"><pre class="notranslate">netstat -tunlp  <span class="pl-c"><span class="pl-c">#</span> 查看所有监听端口及对应进程（-t:TCP，-u:UDP，-n:数字格式，-l:监听状态，-p:进程）</span>
+lsof -i:80     <span class="pl-c"><span class="pl-c">#</span> 查看 80 端口占用进程</span>
+ss -ant        <span class="pl-c"><span class="pl-c">#</span> 更高效的 netstat 替代工具（socket statistics）</span></pre></div>
+<h4>（3）网络配置</h4>
+<div class="highlight highlight-source-shell"><pre class="notranslate">ifconfig       <span class="pl-c"><span class="pl-c">#</span> 查看/配置网卡信息（已逐渐被 ip 命令替代）</span>
+ip addr        <span class="pl-c"><span class="pl-c">#</span> 查看 IP 地址</span>
+ip route       <span class="pl-c"><span class="pl-c">#</span> 查看路由表</span>
+route -n       <span class="pl-c"><span class="pl-c">#</span> 查看路由表（数字格式）</span></pre></div>
+<h3>3. TCP 三次握手与四次挥手</h3>
+<h4>（1）三次握手（建立连接）</h4>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">sequenceDiagram</span>
+    <span class="pl-ent">Client</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Server</span><span class="pl-k">:</span> <span class="pl-s">SYN=1, seq=x （同步请求）</span>
+    <span class="pl-ent">Server</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Client</span><span class="pl-k">:</span> <span class="pl-s">SYN=1, ACK=1, seq=y, ack=x+1 （同步确认）</span>
+    <span class="pl-ent">Client</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Server</span><span class="pl-k">:</span> <span class="pl-s">ACK=1, seq=x+1, ack=y+1 （确认）</span></pre></div>
+<h4>（2）四次挥手（释放连接）</h4>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">sequenceDiagram</span>
+    <span class="pl-ent">Client</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Server</span><span class="pl-k">:</span> <span class="pl-s">FIN=1, seq=u （主动关闭）</span>
+    <span class="pl-ent">Server</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Client</span><span class="pl-k">:</span> <span class="pl-s">ACK=1, seq=v, ack=u+1 （确认关闭）</span>
+    <span class="pl-ent">Server</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Client</span><span class="pl-k">:</span> <span class="pl-s">FIN=1, ACK=1, seq=w, ack=u+1 （被动关闭）</span>
+    <span class="pl-ent">Client</span><span class="pl-k">-&gt;&gt;</span><span class="pl-ent">Server</span><span class="pl-k">:</span> <span class="pl-s">ACK=1, seq=u+1, ack=w+1 （最终确认）</span></pre></div>
+<h3>4. 高频面试问题</h3>
+<p><strong>Q：为什么 TCP 建立连接是三次握手，关闭是四次挥手？</strong><br>
+A：</p>
+<ul>
+<li>三次握手：确保双方收发能力正常（Client 确认 Server 收，Server 确认 Client 收+发，Client 确认 Server 发）；</li>
+<li>四次挥手：Server 收到 FIN 后，可能仍有数据未发完，需先 ACK 确认，待数据发完再发 FIN（故 ACK 和 FIN 分开发送，导致四次）。</li>
+</ul>
+<p><strong>Q：TIME_WAIT 状态的作用？</strong><br>
+A：</p>
+<ul>
+<li>确保最后一个 ACK 到达 Server（防止 Server 重发 FIN）；</li>
+<li>避免旧连接的数据包干扰新连接（等待 2MSL 时间，确保网络中所有旧包过期）。</li>
+</ul>
+<h2>五、性能优化与监控</h2>
+<h3>1. 系统资源监控工具</h3>
+<h4>（1）CPU 监控</h4>
+<div class="highlight highlight-source-shell"><pre class="notranslate">top -c          <span class="pl-c"><span class="pl-c">#</span> 显示进程命令行（-c），按 1 查看所有 CPU 核心</span>
+mpstat -P ALL 1  <span class="pl-c"><span class="pl-c">#</span> 按核心统计 CPU 使用率（每 1 秒采样）</span></pre></div>
+<h4>（2）内存监控</h4>
+<div class="highlight highlight-source-shell"><pre class="notranslate">free -h         <span class="pl-c"><span class="pl-c">#</span> 查看内存使用（-h 人类可读格式）</span>
+vmstat 1        <span class="pl-c"><span class="pl-c">#</span> 实时监控内存、CPU、I/O（每 1 秒刷新）</span></pre></div>
+<h4>（3）磁盘 I/O 监控</h4>
+<div class="highlight highlight-source-shell"><pre class="notranslate">iostat -x 1     <span class="pl-c"><span class="pl-c">#</span> 查看磁盘详细 I/O 统计（-x 显示扩展信息，每 1 秒刷新）</span>
+df -h           <span class="pl-c"><span class="pl-c">#</span> 查看磁盘空间（-h 人类可读）</span>
+du -sh dir/     <span class="pl-c"><span class="pl-c">#</span> 查看目录大小（-s 汇总，-h 人类可读）</span></pre></div>
+<h3>2. 性能优化方向</h3>
+<h4>（1）CPU 优化</h4>
+<ul>
+<li>减少上下文切换（合并同类任务，避免频繁线程切换）；</li>
+<li>优化程序算法（减少 CPU 密集型操作）。</li>
+</ul>
+<h4>（2）内存优化</h4>
+<ul>
+<li>避免内存泄漏（使用 <code class="notranslate">valgrind</code> 工具检测）；</li>
+<li>减少 Swap 使用（增加物理内存，或优化内存分配策略）。</li>
+</ul>
+<h4>（3）磁盘 I/O 优化</h4>
+<ul>
+<li>使用 SSD 替代 HDD（降低随机 I/O 延迟）；</li>
+<li>优化文件系统参数（如 EXT4 的 <code class="notranslate">nobarrier</code> 模式提升写入速度）。</li>
+</ul>
+<h3>3. 高频面试问题</h3>
+<p><strong>Q：如何定位 CPU 使用率过高的进程？</strong><br>
+A：</p>
+<ol>
+<li><code class="notranslate">top</code> 找到高 CPU 进程（按 P 排序）；</li>
+<li><code class="notranslate">ps -mp PID -o THREAD,tid,time</code> 查看进程内线程 CPU 占用；</li>
+<li><code class="notranslate">perf top -p PID</code> 分析进程内热点函数（需安装 <code class="notranslate">perf</code> 工具）。</li>
+</ol>
+<p><strong>Q：swap 空间过大说明什么？如何优化？</strong><br>
+A：</p>
+<ul>
+<li>说明内存不足，系统频繁将数据交换到磁盘（导致性能下降）；</li>
+<li>优化：增加物理内存，或通过 <code class="notranslate">swapoff -a</code> 临时关闭 swap（谨慎操作，可能导致 OOM）。</li>
+</ul>
+<h2>六、安全与权限管理</h2>
+<h3>1. 用户与组管理</h3>
+<h4>（1）用户账户文件</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>文件路径</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">/etc/passwd</code></td>
+<td>存储用户基本信息（用户名、UID、家目录、Shell）</td>
+</tr>
+<tr>
+<td><code class="notranslate">/etc/shadow</code></td>
+<td>存储用户密码哈希值（加密存储，需 root 权限访问）</td>
+</tr>
+<tr>
+<td><code class="notranslate">/etc/group</code></td>
+<td>存储组信息（组名、GID、组成员）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h4>（2）用户操作命令</h4>
+<div class="highlight highlight-source-shell"><pre class="notranslate">useradd -m user  <span class="pl-c"><span class="pl-c">#</span> 创建用户并创建家目录（-m）</span>
+passwd user      <span class="pl-c"><span class="pl-c">#</span> 修改用户密码</span>
+usermod -g group user  <span class="pl-c"><span class="pl-c">#</span> 修改用户所属主组</span></pre></div>
+<h3>2. 防火墙配置（iptables）</h3>
+<h4>（1）核心表与链</h4>
+<ul>
+<li><strong>表（Table）</strong>：<code class="notranslate">filter</code>（过滤包）、<code class="notranslate">nat</code>（网络地址转换）、<code class="notranslate">mangle</code>（修改包标记）；</li>
+<li><strong>链（Chain）</strong>：<code class="notranslate">INPUT</code>（入站）、<code class="notranslate">OUTPUT</code>（出站）、<code class="notranslate">FORWARD</code>（转发）。</li>
+</ul>
+<h4>（2）常用规则</h4>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> 允许 SSH 连接（端口 22）</span>
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+
+<span class="pl-c"><span class="pl-c">#</span> 禁止 IP 192.168.1.100 访问</span>
+iptables -A INPUT -s 192.168.1.100 -j DROP
+
+<span class="pl-c"><span class="pl-c">#</span> 端口转发（将 80 端口转发到 8080）</span>
+iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080</pre></div>
+<h3>3. 高频面试问题</h3>
+<p><strong>Q：如何限制用户只能访问特定目录？</strong><br>
+A：</p>
+<ol>
+<li>创建用户并指定家目录：<code class="notranslate">useradd -d /specific/dir -s /sbin/nologin user</code>（禁止登录）；</li>
+<li>设置目录权限：<code class="notranslate">chown -R root:user /specific/dir</code> + <code class="notranslate">chmod 750 /specific/dir</code>（仅用户和 root 可访问）。</li>
+</ol>
+<p><strong>Q：如何防止暴力破解 SSH？</strong><br>
+A：</p>
+<ol>
+<li>更改 SSH 端口（非默认 22）；</li>
+<li>启用 <code class="notranslate">fail2ban</code> 工具（自动封禁多次登录失败的 IP）；</li>
+<li>使用密钥认证替代密码认证（<code class="notranslate">ssh-keygen</code> 生成密钥，<code class="notranslate">authorized_keys</code> 存储公钥）。</li>
+</ol>
+<h2>七、总结：高频考点速记</h2>
+<ol>
+<li><strong>基础</strong>：内核与发行版区别、systemd 优势、用户态/内核态；</li>
+<li><strong>文件系统</strong>：inode/block 作用、权限模型（755 含义）、软硬链接区别；</li>
+<li><strong>进程管理</strong>：进程状态、IPC 方式、僵尸/孤儿进程处理；</li>
+<li><strong>网络</strong>：三次握手/四次挥手原理、端口查看命令（netstat/lsof）、NAT 原理；</li>
+<li><strong>性能</strong>：top/vmstat/iostat 用法、CPU/内存/I/O 优化方向；</li>
+<li><strong>安全</strong>：用户管理文件、iptables 规则编写、SSH 安全加固。</li>
+</ol>
+<p>通过掌握这些核心知识点，可应对 90% 以上的 Linux 面试问题，重点结合实际场景（如线上故障排查、性能优化）阐述原理和解决方案。</p></div>
+<div style="font-size:small;margin-top:8px;float:right;"></div>
+
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+
+</div>
+    <div id="footer"><div id="footer1">Copyright © <span id="copyrightYear"></span> <a href="https://TubroCoder.github.io/blog">Tubro‘s blog</a></div>
+<div id="footer2">
+    <span id="runday"></span><span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a></span>
+</div>
+
+<script>
+var now=new Date();
+document.getElementById("copyrightYear").innerHTML=now.getFullYear();
+
+if(""!=""){
+    var startSite=new Date("");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+}
+</script></div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z', 'copy': 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z', 'check': 'M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","TubroCoder/blog");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const createClipboardHTML = (codeContent, additionalClasses = '') => `
+        <pre class="notranslate"><code class="notranslate">${codeContent}</code></pre>
+        <div class="clipboard-container position-absolute right-0 top-0 ${additionalClasses}">
+            <clipboard-copy class="ClipboardButton btn m-2 p-0" role="button" style="display: inherit;">
+                <svg height="16" width="16" class="octicon octicon-copy m-2"><path d="${IconList["copy"]}"></path></svg>
+                <svg height="16" width="16" class="octicon octicon-check color-fg-success m-2 d-none"><path d="${IconList["check"]}"></path></svg>
+            </clipboard-copy>
+            <div class="copy-feedback">Copied!</div>
+        </div>
+    `;
+
+    const handleCodeElements = (selector = '') => {
+        document.querySelectorAll(selector).forEach(codeElement => {
+            const codeContent = codeElement.innerHTML;
+            const newStructure = document.createElement('div');
+            newStructure.className = 'snippet-clipboard-content position-relative overflow-auto';
+            newStructure.innerHTML = createClipboardHTML(codeContent);
+
+            const parentElement = codeElement.parentElement;
+            if (selector.includes('highlight')) {
+                parentElement.insertBefore(newStructure, codeElement.nextSibling);
+                parentElement.removeChild(codeElement);
+            } else {
+                parentElement.parentElement.replaceChild(newStructure, parentElement);
+            }
+        });
+    };
+
+    handleCodeElements('pre.notranslate > code.notranslate');
+    handleCodeElements('div.highlight > pre.notranslate');
+
+    let currentFeedback = null;
+    document.querySelectorAll('clipboard-copy').forEach(copyButton => {
+        copyButton.addEventListener('click', () => {
+            const codeContent = copyButton.closest('.snippet-clipboard-content').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const copyIcon = copyButton.querySelector('.octicon-copy');
+            const checkIcon = copyButton.querySelector('.octicon-check');
+            const copyFeedback = copyButton.nextElementSibling;
+
+            if (currentFeedback && currentFeedback !== copyFeedback) {currentFeedback.style.display = 'none';}
+            currentFeedback = copyFeedback;
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copyFeedback.style.display = 'block';
+            copyButton.style.borderColor = 'var(--color-success-fg)';
+
+            setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyFeedback.style.display = 'none';
+                copyButton.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
+
+</script>
+
+
+</html>
