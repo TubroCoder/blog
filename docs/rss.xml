@@ -1,5 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 10:16:42 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-springMVC</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--springMVC.html</link><description>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 10:22:23 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-springboot</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--springboot.html</link><description>
+# Spring Boot 核心面试知识点笔记  
+
+
+## 一、对 Spring Boot 的简单理解  
+
+
+### 1. 定义与目标  
+Spring Boot 是 Spring 生态的**快速开发框架**，通过“**约定大于配置**”（Convention Over Configuration）的理念，解决了传统 Spring 项目**配置繁琐、依赖管理复杂**的问题。</description><guid isPermaLink="true">https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--springboot.html</guid><pubDate>Fri, 30 May 2025 10:22:00 +0000</pubDate></item><item><title>求职面试笔记-springMVC</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--springMVC.html</link><description>
 # Spring MVC 工作原理详解
 
 
