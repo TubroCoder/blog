@@ -1,2 +1,159 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 09:12:26 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>blog第一条文章</title><link>https://TubroCoder.github.io/blog/post/blog-di-yi-tiao-wen-zhang.html</link><description>blog第一条文章。</description><guid isPermaLink="true">https://TubroCoder.github.io/blog/post/blog-di-yi-tiao-wen-zhang.html</guid><pubDate>Fri, 30 May 2025 09:00:28 +0000</pubDate></item></channel></rss>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 10:12:30 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-spring</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--spring.html</link><description>
+# Spring 核心面试知识点笔记
+
+
+## 一、Bean 的生命周期
+
+
+### 1. 完整生命周期阶段
+
+Spring Bean 的生命周期是从实例化到销毁的完整过程，核心阶段如下（按执行顺序）：
+
+| 阶段                | 说明                                                                 | 关键接口/注解                          |
+|---------------------|----------------------------------------------------------------------|----------------------------------------|
+| **实例化**          | 通过构造函数创建对象（或工厂方法）                                   | `InstantiationAwareBeanPostProcessor`  |
+| **属性注入**        | 依赖注入（如 `@Autowired`、`@Resource`）                             | `AutowiredAnnotationBeanPostProcessor` |
+| **Aware 接口回调**  | 感知 Spring 容器信息                                                 | `BeanNameAware`、`BeanFactoryAware`、`ApplicationContextAware` |
+| **BeanPostProcessor 前置处理** | 容器对 Bean 进行自定义修改（如 AOP 代理）       | `postProcessBeforeInitialization`      |
+| **初始化**          | 完成业务初始化逻辑                                                   | `InitializingBean`（`afterPropertiesSet`）、`@PostConstruct`、`init-method` |
+| **BeanPostProcessor 后置处理** | 初始化后的最终修改                                                   | `postProcessAfterInitialization`       |
+| **使用**            | Bean 被业务代码调用                                                 | -                                      |
+| **销毁**            | 容器关闭时执行清理逻辑                                               | `DisposableBean`（`destroy`）、`@PreDestroy`、`destroy-method` |
+
+
+### 2. 生命周期流程图（简化版）
+
+```mermaid
+graph TD
+    A[实例化] --&gt; B[属性注入]
+    B --&gt; C[Aware接口回调]
+    C --&gt; D[BeanPostProcessor前置处理]
+    D --&gt; E[初始化（@PostConstruct/afterPropertiesSet/init-method）]
+    E --&gt; F[BeanPostProcessor后置处理]
+    F --&gt; G[使用]
+    G --&gt; H[销毁（@PreDestroy/destroy/destroy-method）]
+```
+
+
+### 3. 代码示例：生命周期阶段验证
+
+```java
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.*;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+@Component
+public class LifecycleBean implements 
+    BeanNameAware, BeanFactoryAware, ApplicationContextAware, InitializingBean, DisposableBean {
+
+    // 1. 实例化阶段（构造函数）
+    public LifecycleBean() {
+        System.out.println('[1] 构造函数调用（实例化）');
+    }
+
+    // 2. 属性注入（假设存在依赖注入）
+    // @Autowired 会在此阶段执行
+
+    // 3. Aware接口回调
+    @Override
+    public void setBeanName(String name) {
+        System.out.println('[2] BeanNameAware.setBeanName() 调用，Bean名称：' + name);
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory factory) throws BeansException {
+        System.out.println('[3] BeanFactoryAware.setBeanFactory() 调用');
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext context) throws BeansException {
+        System.out.println('[4] ApplicationContextAware.setApplicationContext() 调用');
+    }
+
+    // 4. BeanPostProcessor 前置处理（由容器自动触发，示例中省略具体实现）
+
+    // 5. 初始化阶段
+    @PostConstruct
+    public void postConstruct() {
+        System.out.println('[5] @PostConstruct 注解方法调用');
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println('[6] InitializingBean.afterPropertiesSet() 调用');
+    }
+
+    // 自定义初始化方法（需在配置中声明）
+    public void customInit() {
+        System.out.println('[7] 自定义初始化方法 customInit() 调用');
+    }
+
+    // 6. BeanPostProcessor 后置处理（由容器自动触发）
+
+    // 7. 使用阶段（业务方法）
+    public void doWork() {
+        System.out.println('[8] Bean 正在被使用');
+    }
+
+    // 8. 销毁阶段
+    @PreDestroy
+    public void preDestroy() {
+        System.out.println('[9] @PreDestroy 注解方法调用');
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        System.out.println('[10] DisposableBean.destroy() 调用');
+    }
+
+    // 自定义销毁方法（需在配置中声明）
+    public void customDestroy() {
+        System.out.println('[11] 自定义销毁方法 customDestroy() 调用');
+    }
+}
+```
+
+**配置类声明初始化/销毁方法**：
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class LifecycleConfig {
+    @Bean(initMethod = 'customInit', destroyMethod = 'customDestroy')
+    public LifecycleBean lifecycleBean() {
+        return new LifecycleBean();
+    }
+}
+```
+
+
+## 二、事务及其传播机制
+
+
+### 1. 事务的 ACID 特性
+
+| 特性         | 说明                                                                 |
+|--------------|----------------------------------------------------------------------|
+| 原子性（Atomicity） | 事务内操作要么全部成功，要么全部回滚                                 |
+| 一致性（Consistency） | 事务执行前后数据状态符合业务规则（如转账后总金额不变）               |
+| 隔离性（Isolation） | 多事务并发时，彼此互不干扰（通过隔离级别控制）                       |
+| 持久性（Durability） | 事务提交后，数据修改永久保存（依赖数据库持久化机制）                 |
+
+
+### 2. Spring 事务管理方式
+
+| 方式         | 实现原理               | 优点                                   | 缺点                                   |
+|--------------|------------------------|----------------------------------------|----------------------------------------|
+| 声明式事务   | 基于 AOP 自动代理       | 无侵入性，代码简洁（通过 `@Transactional` 注解） | 依赖 AOP 环境，无法细粒度控制事务边界   |
+| 编程式事务   | 手动调用 `TransactionTemplate` | 灵活控制事务边界（如条件提交/回滚）     | 代码冗余，侵入业务逻辑                 |
+
+
+### 3. 事务传播机制（7种）
+
+传播机制定义了**多个事务方法嵌套调用时**，事务如何合并或独立执行。</description><guid isPermaLink="true">https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--spring.html</guid><pubDate>Fri, 30 May 2025 10:12:03 +0000</pubDate></item><item><title>blog第一条文章</title><link>https://TubroCoder.github.io/blog/post/blog-di-yi-tiao-wen-zhang.html</link><description>blog第一条文章。</description><guid isPermaLink="true">https://TubroCoder.github.io/blog/post/blog-di-yi-tiao-wen-zhang.html</guid><pubDate>Fri, 30 May 2025 09:00:28 +0000</pubDate></item></channel></rss>
