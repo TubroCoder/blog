@@ -1,5 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 10:12:30 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-spring</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--spring.html</link><description>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 10:16:42 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-springMVC</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--springMVC.html</link><description>
+# Spring MVC 工作原理详解
+
+
+## 一、核心概念
+
+Spring MVC 是 Spring 框架的 Web 层解决方案，基于 **MVC 模式**设计，通过清晰的组件分工实现请求处理、业务逻辑和视图渲染的解耦。</description><guid isPermaLink="true">https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--springMVC.html</guid><pubDate>Fri, 30 May 2025 10:16:17 +0000</pubDate></item><item><title>求职面试笔记-spring</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--spring.html</link><description>
 # Spring 核心面试知识点笔记
 
 
