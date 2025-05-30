@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
+    
+    <link rel="icon" href="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="
+# Docker 核心面试知识点笔记  
+
+
+## 一、Docker 基础概念  
+
+
+### 1. 什么是 Docker？  
+Docker 是一个开源的**容器化平台**，通过将应用程序及其依赖打包成**镜像（Image）**，运行在**容器（Container）**中，实现**环境隔离、快速部署、资源高效利用**。">
+<meta property="og:title" content="求职面试笔记-docker">
+<meta property="og:description" content="
+# Docker 核心面试知识点笔记  
+
+
+## 一、Docker 基础概念  
+
+
+### 1. 什么是 Docker？  
+Docker 是一个开源的**容器化平台**，通过将应用程序及其依赖打包成**镜像（Image）**，运行在**容器（Container）**中，实现**环境隔离、快速部署、资源高效利用**。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--docker.html">
+<meta property="og:image" content="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true">
+<title>求职面试笔记-docker</title>
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
+
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+.copy-feedback {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    color: var(--color-fg-on-emphasis);
+    background-color: var(--color-fg-muted);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">求职面试笔记-docker</h1>
+<div class="title-right">
+    <a href="https://TubroCoder.github.io/blog" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/TubroCoder/blog/issues/12" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><h1>Docker 核心面试知识点笔记</h1>
+<h2>一、Docker 基础概念</h2>
+<h3>1. 什么是 Docker？</h3>
+<p>Docker 是一个开源的<strong>容器化平台</strong>，通过将应用程序及其依赖打包成<strong>镜像（Image）</strong>，运行在<strong>容器（Container）中，实现环境隔离、快速部署、资源高效利用</strong>。</p>
+<h3>2. 核心优势（对比虚拟机）</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>虚拟机（VM）</th>
+<th>容器（Docker）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>隔离级别</strong></td>
+<td>硬件级隔离（操作系统级）</td>
+<td>进程级隔离（内核级）</td>
+</tr>
+<tr>
+<td><strong>启动时间</strong></td>
+<td>分钟级</td>
+<td>秒级（毫秒级）</td>
+</tr>
+<tr>
+<td><strong>资源占用</strong></td>
+<td>GB 级（包含完整 OS）</td>
+<td>MB 级（共享宿主机内核）</td>
+</tr>
+<tr>
+<td><strong>镜像大小</strong></td>
+<td>数十 GB</td>
+<td>数十 MB（分层存储）</td>
+</tr>
+<tr>
+<td><strong>密度</strong></td>
+<td>单主机运行 10~20 个 VM</td>
+<td>单主机运行 成百上千个容器</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>3. 核心组件</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>组件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Docker Engine</strong></td>
+<td>核心引擎，包含 <code class="notranslate">dockerd</code> 守护进程、<code class="notranslate">containerd</code>（容器运行时）、<code class="notranslate">runc</code>（低层级运行时）</td>
+</tr>
+<tr>
+<td><strong>镜像（Image）</strong></td>
+<td>只读模板（如 <code class="notranslate">nginx:1.23</code>），通过 Dockerfile 构建，支持分层存储（UnionFS）</td>
+</tr>
+<tr>
+<td><strong>容器（Container）</strong></td>
+<td>镜像的运行实例（可读写），基于镜像创建，支持启停、暂停、删除</td>
+</tr>
+<tr>
+<td><strong>仓库（Registry）</strong></td>
+<td>存储镜像的仓库（如 Docker Hub 公有仓库、Harbor 私有仓库）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>二、Docker 架构与原理</h2>
+<h3>1. 架构图（Mermaid 绘制）</h3>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">TD</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Docker Client<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Docker Daemon（dockerd）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Containerd<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>runc<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">D</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">E</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Linux 内核（Namespace/Cgroup）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">F</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>镜像仓库<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">G</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>镜像分层存储（UnionFS）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">G</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">H</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>容器实例（可读写层）<span class="pl-pds"><span class="pl-sg">]</span></span></span></pre></div>
+<h3>2. 关键技术原理</h3>
+<h4>（1）镜像分层（UnionFS）</h4>
+<ul>
+<li><strong>分层存储</strong>：镜像由多个只读层（Layer）叠加而成，上层修改不会覆盖下层（如 <code class="notranslate">docker pull nginx</code> 下载基础层，<code class="notranslate">docker commit</code> 添加自定义层）；</li>
+<li><strong>优势</strong>：减少冗余（相同 Layer 共享存储），加速镜像构建（仅重建变化层）。</li>
+</ul>
+<h4>（2）容器隔离（Namespace + Cgroup）</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>技术</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Namespace</strong></td>
+<td>提供命名空间隔离（如 <code class="notranslate">pid</code> 隔离进程、<code class="notranslate">net</code> 隔离网络、<code class="notranslate">mnt</code> 隔离文件系统）</td>
+</tr>
+<tr>
+<td><strong>Cgroup</strong></td>
+<td>控制资源配额（CPU、内存、磁盘 I/O），避免容器占用过多资源</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>3. Dockerfile 核心指令</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>指令</th>
+<th>作用</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">FROM</code></td>
+<td>指定基础镜像（必须为第一条指令）</td>
+<td><code class="notranslate">FROM ubuntu:22.04</code></td>
+</tr>
+<tr>
+<td><code class="notranslate">RUN</code></td>
+<td>执行命令并提交新层（每条 <code class="notranslate">RUN</code> 生成一个 Layer）</td>
+<td><code class="notranslate">RUN apt-get update &amp;&amp; apt-get install -y curl</code></td>
+</tr>
+<tr>
+<td><code class="notranslate">COPY</code></td>
+<td>复制本地文件到镜像</td>
+<td><code class="notranslate">COPY app.jar /app.jar</code></td>
+</tr>
+<tr>
+<td><code class="notranslate">CMD</code></td>
+<td>容器启动时执行的默认命令（一个 Dockerfile 仅一个 <code class="notranslate">CMD</code>，覆盖用 <code class="notranslate">docker run</code>）</td>
+<td><code class="notranslate">CMD ["java", "-jar", "/app.jar"]</code></td>
+</tr>
+<tr>
+<td><code class="notranslate">EXPOSE</code></td>
+<td>声明容器监听端口（需配合 <code class="notranslate">docker run -p</code> 映射）</td>
+<td><code class="notranslate">EXPOSE 8080</code></td>
+</tr>
+<tr>
+<td><code class="notranslate">VOLUME</code></td>
+<td>定义数据卷（持久化存储，避免数据丢失）</td>
+<td><code class="notranslate">VOLUME /data</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>三、镜像与容器操作</h2>
+<h3>1. 镜像操作命令</h3>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> 拉取镜像</span>
+docker pull nginx:1.23  
+
+<span class="pl-c"><span class="pl-c">#</span> 构建镜像（-t 打标签，. 表示 Dockerfile 所在目录）</span>
+docker build -t myapp:v1 <span class="pl-c1">.</span>  
+
+<span class="pl-c"><span class="pl-c">#</span> 查看镜像（分层结构）</span>
+docker image ls -a  
+docker <span class="pl-c1">history</span> myapp:v1  
+
+<span class="pl-c"><span class="pl-c">#</span> 推送镜像到私有仓库</span>
+docker login harbor.example.com  
+docker tag myapp:v1 harbor.example.com/app/myapp:v1  
+docker push harbor.example.com/app/myapp:v1  </pre></div>
+<h3>2. 容器操作命令</h3>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> 运行容器（-d 后台运行，-p 映射端口，--name 自定义名称）</span>
+docker run -d -p 80:80 --name mynginx nginx:1.23  
+
+<span class="pl-c"><span class="pl-c">#</span> 进入容器（-it 交互式，bash 为容器内 Shell）</span>
+docker <span class="pl-c1">exec</span> -it mynginx bash  
+
+<span class="pl-c"><span class="pl-c">#</span> 查看容器状态（-a 包含已停止容器）</span>
+docker ps -a  
+
+<span class="pl-c"><span class="pl-c">#</span> 停止/启动容器</span>
+docker stop mynginx  
+docker start mynginx  
+
+<span class="pl-c"><span class="pl-c">#</span> 删除容器（-f 强制删除运行中的容器）</span>
+docker rm mynginx  
+docker rm <span class="pl-s"><span class="pl-pds">$(</span>docker ps -aq<span class="pl-pds">)</span></span>  <span class="pl-c"><span class="pl-c">#</span> 删除所有容器</span></pre></div>
+<h2>四、数据管理与网络</h2>
+<h3>1. 数据持久化方案</h3>
+<h4>（1）Volume（数据卷）</h4>
+<ul>
+<li><strong>特点</strong>：独立于容器生命周期，支持宿主机与容器双向同步，推荐用于持久化存储；</li>
+<li><strong>使用场景</strong>：数据库数据（如 MySQL 的 <code class="notranslate">/var/lib/mysql</code>）、日志文件。</li>
+</ul>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> 创建并挂载 Volume（宿主机路径自动生成）</span>
+docker run -v myvolume:/data nginx  
+
+<span class="pl-c"><span class="pl-c">#</span> 指定宿主机路径挂载（推荐）</span>
+docker run -v /host/data:/container/data nginx  </pre></div>
+<h4>（2）Bind Mount（绑定挂载）</h4>
+<ul>
+<li><strong>特点</strong>：直接挂载宿主机文件/目录，修改实时生效，适合开发环境（如代码热更新）；</li>
+<li><strong>风险</strong>：宿主机路径不存在时自动创建（可能导致权限问题）。</li>
+</ul>
+<div class="highlight highlight-source-shell"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> 绑定挂载本地目录</span>
+docker run -v <span class="pl-s"><span class="pl-pds">$(</span>pwd<span class="pl-pds">)</span></span>/app:/app nginx  </pre></div>
+<h4>（3）区别对比</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>Volume</th>
+<th>Bind Mount</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>存储位置</td>
+<td>宿主机 Docker 数据目录</td>
+<td>任意宿主机路径</td>
+</tr>
+<tr>
+<td>生命周期</td>
+<td>独立于容器（需手动删除）</td>
+<td>依赖宿主机路径存在性</td>
+</tr>
+<tr>
+<td>镜像无关性</td>
+<td>支持（适合生产环境）</td>
+<td>依赖宿主机环境（适合开发）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 网络模型（四大模式）</h3>
+<h4>（1）Bridge（默认模式）</h4>
+<ul>
+<li><strong>原理</strong>：容器通过虚拟网桥 <code class="notranslate">docker0</code> 连接宿主机，宿主机通过 <code class="notranslate">iptables</code> 转发网络流量；</li>
+<li><strong>配置</strong>：
+<div class="highlight highlight-source-shell"><pre class="notranslate">docker run -d -p 80:80 --network bridge nginx  <span class="pl-c"><span class="pl-c">#</span> 显式指定 Bridge 模式</span></pre></div>
+</li>
+</ul>
+<h4>（2）Host</h4>
+<ul>
+<li><strong>特点</strong>：容器共享宿主机网络命名空间（IP/端口与宿主机一致），适合高性能网络场景；</li>
+<li><strong>风险</strong>：端口冲突（容器端口需与宿主机端口唯一）。</li>
+</ul>
+<h4>（3）None</h4>
+<ul>
+<li><strong>特点</strong>：容器无网络连接（仅本地回环接口 <code class="notranslate">lo</code>），适合安全敏感场景（如日志收集容器）。</li>
+</ul>
+<h4>（4）Overlay（集群模式）</h4>
+<ul>
+<li><strong>作用</strong>：跨宿主机容器通信（Docker Swarm/Kubernetes 集群常用），通过 VXLAN 实现二层网络扩展。</li>
+</ul>
+<h2>五、面试高频问题详解</h2>
+<h3>1. 镜像 vs 容器的区别？</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>特性</th>
+<th>镜像（Image）</th>
+<th>容器（Container）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本质</td>
+<td>只读模板</td>
+<td>镜像的运行实例（可读写）</td>
+</tr>
+<tr>
+<td>生命周期</td>
+<td>持久化存储</td>
+<td>随启停创建/销毁</td>
+</tr>
+<tr>
+<td>存储位置</td>
+<td>仓库（Registry）</td>
+<td>宿主机（可删除）</td>
+</tr>
+<tr>
+<td>主要操作</td>
+<td>构建、推送、拉取</td>
+<td>启动、停止、进入</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 如何优化 Dockerfile？</h3>
+<h4>（1）分层构建最佳实践</h4>
+<ul>
+<li><strong>合并指令</strong>：将多个 <code class="notranslate">RUN</code> 命令合并（减少 Layer 数量），如：
+<div class="highlight highlight-source-dockerfile"><pre class="notranslate"><span class="pl-k">RUN</span> apt-get update &amp;&amp; apt-get install -y \
+    curl \
+    wget \
+    &amp;&amp; apt-get clean  # 清理缓存，减小镜像大小</pre></div>
+</li>
+<li><strong>利用缓存</strong>：不变的依赖（如 <code class="notranslate">pom.xml</code>）先复制，变化的代码后复制，触发缓存复用。</li>
+</ul>
+<h4>（2）使用多阶段构建</h4>
+<div class="highlight highlight-source-dockerfile"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> 构建阶段（使用编译环境）</span>
+<span class="pl-k">FROM</span> maven:3.8.6-jdk-11 AS build
+<span class="pl-k">COPY</span> pom.xml /app/
+<span class="pl-k">RUN</span> mvn dependency:resolve
+<span class="pl-k">COPY</span> src /app/src
+<span class="pl-k">RUN</span> mvn package -DskipTests
+
+<span class="pl-c"><span class="pl-c">#</span> 运行阶段（使用轻量镜像）</span>
+<span class="pl-k">FROM</span> openjdk:11-jre-slim
+<span class="pl-k">COPY</span> --from=build /app/target/app.jar /app.jar
+<span class="pl-k">CMD</span> [<span class="pl-s">"java"</span>, <span class="pl-s">"-jar"</span>, <span class="pl-s">"/app.jar"</span>]  # 镜像大小减少 50%+</pre></div>
+<h3>3. 容器数据持久化方案如何选择？</h3>
+<ul>
+<li><strong>生产环境</strong>：使用 <code class="notranslate">Volume</code>（自动管理宿主机路径，支持备份/迁移）；</li>
+<li><strong>开发环境</strong>：使用 <code class="notranslate">Bind Mount</code>（本地代码修改实时生效，无需重建镜像）；</li>
+<li><strong>敏感数据</strong>：结合 Secret（如 Docker Swarm 的 Secret 或 Kubernetes 的 Secret），避免明文挂载。</li>
+</ul>
+<h3>4. Docker 网络模式如何选择？</h3>
+<ul>
+<li><strong>单容器</strong>：默认 <code class="notranslate">bridge</code> 模式（推荐，隔离宿主机网络）；</li>
+<li><strong>高性能网络</strong>：<code class="notranslate">host</code> 模式（如 Nginx 代理容器，减少网络开销）；</li>
+<li><strong>集群通信</strong>：<code class="notranslate">overlay</code> 模式（跨主机容器互通，需配合 Swarm/K8s）。</li>
+</ul>
+<h3>5. Docker 安全问题有哪些？</h3>
+<h4>（1）镜像安全</h4>
+<ul>
+<li><strong>风险</strong>：镜像包含漏洞（如旧版本 OpenSSL）、恶意软件；</li>
+<li><strong>解决方案</strong>：
+<ul>
+<li>使用官方镜像（如 <code class="notranslate">python:3.12-slim</code> 替代自定义基础镜像）；</li>
+<li>扫描镜像漏洞（<code class="notranslate">docker scan myapp:v1</code> 或第三方工具 Clair）。</li>
+</ul>
+</li>
+</ul>
+<h4>（2）权限控制</h4>
+<ul>
+<li><strong>风险</strong>：容器以 <code class="notranslate">root</code> 用户运行，可能破坏宿主机文件；</li>
+<li><strong>解决方案</strong>：
+<div class="highlight highlight-source-dockerfile"><pre class="notranslate"><span class="pl-k">RUN</span> useradd -m appuser &amp;&amp; chown -R appuser /app  # 创建非 root 用户
+<span class="pl-k">USER</span> appuser  # 切换为普通用户运行容器</pre></div>
+</li>
+</ul>
+<h4>（3）资源限制</h4>
+<ul>
+<li><strong>风险</strong>：容器占用过多宿主机资源（如 CPU 100%、内存 OOM）；</li>
+<li><strong>解决方案</strong>：
+<div class="highlight highlight-source-shell"><pre class="notranslate">docker run -m 1g --cpu-shares 512 myapp  <span class="pl-c"><span class="pl-c">#</span> 限制内存 1GB，CPU 份额 512（相对值）</span></pre></div>
+</li>
+</ul>
+<h2>六、总结：核心考点速记</h2>
+<ol>
+<li><strong>基础概念</strong>：容器化优势、镜像分层、Namespace/Cgroup 隔离原理；</li>
+<li><strong>核心组件</strong>：Docker Engine 组成（dockerd/containerd/runc）、仓库分类（公有/私有）；</li>
+<li><strong>操作实践</strong>：Dockerfile 优化（分层构建、多阶段构建）、数据卷与绑定挂载区别；</li>
+<li><strong>网络与安全</strong>：四大网络模式适用场景、镜像漏洞扫描、非 root 用户最佳实践；</li>
+<li><strong>面试高频</strong>：镜像 vs 容器、数据持久化方案选择、Docker 安全加固。</li>
+</ol>
+<p>通过结合原理与实践场景（如优化 Dockerfile、解决数据持久化问题），可有效应对面试中的深度提问。</p></div>
+<div style="font-size:small;margin-top:8px;float:right;"></div>
+
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+
+</div>
+    <div id="footer"><div id="footer1">Copyright © <span id="copyrightYear"></span> <a href="https://TubroCoder.github.io/blog">Tubro‘s blog</a></div>
+<div id="footer2">
+    <span id="runday"></span><span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a></span>
+</div>
+
+<script>
+var now=new Date();
+document.getElementById("copyrightYear").innerHTML=now.getFullYear();
+
+if(""!=""){
+    var startSite=new Date("");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+}
+</script></div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z', 'copy': 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z', 'check': 'M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","TubroCoder/blog");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const createClipboardHTML = (codeContent, additionalClasses = '') => `
+        <pre class="notranslate"><code class="notranslate">${codeContent}</code></pre>
+        <div class="clipboard-container position-absolute right-0 top-0 ${additionalClasses}">
+            <clipboard-copy class="ClipboardButton btn m-2 p-0" role="button" style="display: inherit;">
+                <svg height="16" width="16" class="octicon octicon-copy m-2"><path d="${IconList["copy"]}"></path></svg>
+                <svg height="16" width="16" class="octicon octicon-check color-fg-success m-2 d-none"><path d="${IconList["check"]}"></path></svg>
+            </clipboard-copy>
+            <div class="copy-feedback">Copied!</div>
+        </div>
+    `;
+
+    const handleCodeElements = (selector = '') => {
+        document.querySelectorAll(selector).forEach(codeElement => {
+            const codeContent = codeElement.innerHTML;
+            const newStructure = document.createElement('div');
+            newStructure.className = 'snippet-clipboard-content position-relative overflow-auto';
+            newStructure.innerHTML = createClipboardHTML(codeContent);
+
+            const parentElement = codeElement.parentElement;
+            if (selector.includes('highlight')) {
+                parentElement.insertBefore(newStructure, codeElement.nextSibling);
+                parentElement.removeChild(codeElement);
+            } else {
+                parentElement.parentElement.replaceChild(newStructure, parentElement);
+            }
+        });
+    };
+
+    handleCodeElements('pre.notranslate > code.notranslate');
+    handleCodeElements('div.highlight > pre.notranslate');
+
+    let currentFeedback = null;
+    document.querySelectorAll('clipboard-copy').forEach(copyButton => {
+        copyButton.addEventListener('click', () => {
+            const codeContent = copyButton.closest('.snippet-clipboard-content').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const copyIcon = copyButton.querySelector('.octicon-copy');
+            const checkIcon = copyButton.querySelector('.octicon-check');
+            const copyFeedback = copyButton.nextElementSibling;
+
+            if (currentFeedback && currentFeedback !== copyFeedback) {currentFeedback.style.display = 'none';}
+            currentFeedback = copyFeedback;
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copyFeedback.style.display = 'block';
+            copyButton.style.borderColor = 'var(--color-success-fg)';
+
+            setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyFeedback.style.display = 'none';
+                copyButton.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
+
+</script>
+
+
+</html>
