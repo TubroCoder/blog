@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
+    
+    <link rel="icon" href="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="
+# JVM 核心面试知识点笔记  
+
+
+## 一、类加载机制与类加载器  
+
+
+### 1. 类加载的生命周期  
+类从被加载到内存到卸载的完整过程分为 **加载→连接→初始化→使用→卸载** 5 个阶段，其中连接阶段包含验证、准备、解析三个子阶段。">
+<meta property="og:title" content="求职面试笔记-JVM相关">
+<meta property="og:description" content="
+# JVM 核心面试知识点笔记  
+
+
+## 一、类加载机制与类加载器  
+
+
+### 1. 类加载的生命周期  
+类从被加载到内存到卸载的完整过程分为 **加载→连接→初始化→使用→卸载** 5 个阶段，其中连接阶段包含验证、准备、解析三个子阶段。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--JVM-xiang-guan.html">
+<meta property="og:image" content="https://github.com/TubroCoder/blog/blob/main/image.png?raw=true">
+<title>求职面试笔记-JVM相关</title>
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
+
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+.copy-feedback {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    color: var(--color-fg-on-emphasis);
+    background-color: var(--color-fg-muted);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">求职面试笔记-JVM相关</h1>
+<div class="title-right">
+    <a href="https://TubroCoder.github.io/blog" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/TubroCoder/blog/issues/13" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><h1>JVM 核心面试知识点笔记</h1>
+<h2>一、类加载机制与类加载器</h2>
+<h3>1. 类加载的生命周期</h3>
+<p>类从被加载到内存到卸载的完整过程分为 <strong>加载→连接→初始化→使用→卸载</strong> 5 个阶段，其中连接阶段包含验证、准备、解析三个子阶段。</p>
+<h4>（1）关键阶段详解</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>阶段</th>
+<th>核心任务</th>
+<th>示例说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>加载</strong></td>
+<td>通过类加载器将 <code class="notranslate">.class</code> 字节码文件加载到内存，生成 <code class="notranslate">Class</code> 对象</td>
+<td>读取 JAR 包中的 <code class="notranslate">User.class</code> 文件，创建 <code class="notranslate">User</code> 类的 <code class="notranslate">Class</code> 对象</td>
+</tr>
+<tr>
+<td><strong>验证</strong></td>
+<td>校验字节码格式合法性（如魔数 <code class="notranslate">0xCAFEBABE</code>）、语义正确性（如 final 类无子类）</td>
+<td>JVM 检查 <code class="notranslate">User.class</code> 的版本号是否兼容当前 JVM（如 JDK 1.8 无法加载 JDK 11 编译的类）</td>
+</tr>
+<tr>
+<td><strong>准备</strong></td>
+<td>为类静态变量分配内存并设置初始值（基本类型默认 0，对象默认 null）</td>
+<td><code class="notranslate">static int age = 20</code> 在准备阶段分配内存，初始值为 0（初始化阶段才赋值 20）</td>
+</tr>
+<tr>
+<td><strong>解析</strong></td>
+<td>将符号引用（如 <code class="notranslate">UserService</code> 类名）替换为直接引用（内存地址）</td>
+<td>把 <code class="notranslate">UserService</code> 的符号引用替换为指向其 <code class="notranslate">Class</code> 对象的指针</td>
+</tr>
+<tr>
+<td><strong>初始化</strong></td>
+<td>执行类构造器 <code class="notranslate">&lt;clinit&gt;()</code>（静态变量赋值 + 静态代码块执行）</td>
+<td>执行 <code class="notranslate">static { System.out.println("init"); }</code> 静态代码块</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 类加载器与双亲委派机制</h3>
+<h4>（1）类加载器层次结构</h4>
+<p>JVM 内置 4 层类加载器，从顶层到底层依次为：</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>类加载器</th>
+<th>加载范围</th>
+<th>实现语言</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>启动类加载器（Bootstrap CL）</strong></td>
+<td>加载 JDK 核心类（如 <code class="notranslate">java.lang.*</code>、<code class="notranslate">rt.jar</code>、<code class="notranslate">charsets.jar</code>）</td>
+<td>C++（JVM 内置）</td>
+</tr>
+<tr>
+<td><strong>扩展类加载器（Extension CL）</strong></td>
+<td>加载 <code class="notranslate">jre/lib/ext</code> 目录下的 JAR（如 <code class="notranslate">javax.crypto</code>、<code class="notranslate">dnsns.jar</code>）</td>
+<td>Java</td>
+</tr>
+<tr>
+<td><strong>应用类加载器（Application CL）</strong></td>
+<td>加载用户类路径（<code class="notranslate">classpath</code>）下的类（如项目 <code class="notranslate">target/classes</code> 中的类）</td>
+<td>Java</td>
+</tr>
+<tr>
+<td><strong>自定义类加载器（Custom CL）</strong></td>
+<td>加载特定路径或加密的 <code class="notranslate">.class</code> 文件（如从数据库/网络加载类）</td>
+<td>Java</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h4>（2）双亲委派机制（流程图）</h4>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">TD</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>自定义类加载器<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>应用类加载器<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>扩展类加载器<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span> <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>启动类加载器<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">D</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">未找到目标类</span><span class="pl-k">|</span> <span class="pl-ent">C</span>
+    <span class="pl-ent">C</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">未找到目标类</span><span class="pl-k">|</span> <span class="pl-ent">B</span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">未找到目标类</span><span class="pl-k">|</span> <span class="pl-ent">A</span>
+    <span class="pl-ent">A</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">最终加载</span><span class="pl-k">|</span> 内存中的<span class="pl-ent">Class</span>对象</pre></div>
+<p><strong>核心逻辑</strong>：</p>
+<ul>
+<li>类加载时，当前类加载器先委托父类加载器尝试加载（递归向上）；</li>
+<li>父类加载器无法加载时（如不在其加载范围内），当前类加载器才尝试自己加载；</li>
+<li>保证核心类（如 <code class="notranslate">java.lang.Object</code>）仅被启动类加载器加载一次，避免篡改和重复加载。</li>
+</ul>
+<h4>（3）打破双亲委派的场景与示例</h4>
+<p><strong>场景</strong>：</p>
+<ul>
+<li>热部署（如 Tomcat 需为不同 Web 应用加载同名不同版本的类）；</li>
+<li>模块化（如 OSGi 支持动态替换类）；</li>
+<li>自定义加密类（需解密 <code class="notranslate">.class</code> 文件后加载）。</li>
+</ul>
+<p><strong>自定义类加载器示例</strong>（加载加密的 <code class="notranslate">.class</code> 文件）：</p>
+<div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-k">import</span> <span class="pl-s1">java</span>.<span class="pl-s1">io</span>.*;
+
+<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-smi">EncryptClassLoader</span> <span class="pl-k">extends</span> <span class="pl-smi">ClassLoader</span> {
+    <span class="pl-k">private</span> <span class="pl-smi">String</span> <span class="pl-s1">classPath</span>;
+    <span class="pl-k">private</span> <span class="pl-smi">byte</span> <span class="pl-s1">key</span> = (<span class="pl-smi">byte</span>) <span class="pl-c1">0xAB</span>; <span class="pl-c">// 加密密钥</span>
+
+    <span class="pl-k">public</span> <span class="pl-smi">EncryptClassLoader</span>(<span class="pl-smi">String</span> <span class="pl-s1">classPath</span>) {
+        <span class="pl-smi">this</span>.<span class="pl-s1">classPath</span> = <span class="pl-s1">classPath</span>;
+    }
+
+    <span class="pl-c1">@</span><span class="pl-c1">Override</span>
+    <span class="pl-k">protected</span> <span class="pl-smi">Class</span>&lt;?&gt; <span class="pl-en">findClass</span>(<span class="pl-smi">String</span> <span class="pl-s1">className</span>) <span class="pl-k">throws</span> <span class="pl-smi">ClassNotFoundException</span> {
+        <span class="pl-k">try</span> {
+            <span class="pl-smi">byte</span>[] <span class="pl-s1">encryptedData</span> = <span class="pl-en">loadEncryptedClassData</span>(<span class="pl-s1">className</span>);
+            <span class="pl-smi">byte</span>[] <span class="pl-s1">decryptedData</span> = <span class="pl-en">decrypt</span>(<span class="pl-s1">encryptedData</span>); <span class="pl-c">// 解密字节码</span>
+            <span class="pl-k">return</span> <span class="pl-en">defineClass</span>(<span class="pl-s1">className</span>, <span class="pl-s1">decryptedData</span>, <span class="pl-c1">0</span>, <span class="pl-s1">decryptedData</span>.<span class="pl-s1">length</span>);
+        } <span class="pl-k">catch</span> (<span class="pl-smi">IOException</span> <span class="pl-s1">e</span>) {
+            <span class="pl-k">throw</span> <span class="pl-k">new</span> <span class="pl-smi">ClassNotFoundException</span>(<span class="pl-s">"Class not found: "</span> + <span class="pl-s1">className</span>, <span class="pl-s1">e</span>);
+        }
+    }
+
+    <span class="pl-k">private</span> <span class="pl-smi">byte</span>[] <span class="pl-en">loadEncryptedClassData</span>(<span class="pl-smi">String</span> <span class="pl-s1">className</span>) <span class="pl-k">throws</span> <span class="pl-smi">IOException</span> {
+        <span class="pl-smi">String</span> <span class="pl-s1">path</span> = <span class="pl-s1">classPath</span> + <span class="pl-s">"/"</span> + <span class="pl-s1">className</span>.<span class="pl-en">replace</span>(<span class="pl-s">'.'</span>, <span class="pl-s">'/'</span>) + <span class="pl-s">".class"</span>;
+        <span class="pl-k">try</span> (<span class="pl-smi">InputStream</span> <span class="pl-s1">is</span> = <span class="pl-k">new</span> <span class="pl-smi">FileInputStream</span>(<span class="pl-s1">path</span>);
+             <span class="pl-smi">ByteArrayOutputStream</span> <span class="pl-s1">baos</span> = <span class="pl-k">new</span> <span class="pl-smi">ByteArrayOutputStream</span>()) {
+            <span class="pl-smi">int</span> <span class="pl-s1">len</span>;
+            <span class="pl-smi">byte</span>[] <span class="pl-s1">buffer</span> = <span class="pl-k">new</span> <span class="pl-smi">byte</span>[<span class="pl-c1">1024</span>];
+            <span class="pl-k">while</span> ((<span class="pl-s1">len</span> = <span class="pl-s1">is</span>.<span class="pl-en">read</span>(<span class="pl-s1">buffer</span>)) != -<span class="pl-c1">1</span>) {
+                <span class="pl-s1">baos</span>.<span class="pl-en">write</span>(<span class="pl-s1">buffer</span>, <span class="pl-c1">0</span>, <span class="pl-s1">len</span>);
+            }
+            <span class="pl-k">return</span> <span class="pl-s1">baos</span>.<span class="pl-en">toByteArray</span>();
+        }
+    }
+
+    <span class="pl-k">private</span> <span class="pl-smi">byte</span>[] <span class="pl-en">decrypt</span>(<span class="pl-smi">byte</span>[] <span class="pl-s1">data</span>) {
+        <span class="pl-c">// 简单异或解密（实际加密算法需更复杂）</span>
+        <span class="pl-k">for</span> (<span class="pl-smi">int</span> <span class="pl-s1">i</span> = <span class="pl-c1">0</span>; <span class="pl-s1">i</span> &lt; <span class="pl-s1">data</span>.<span class="pl-s1">length</span>; <span class="pl-s1">i</span>++) {
+            <span class="pl-s1">data</span>[<span class="pl-s1">i</span>] ^= <span class="pl-s1">key</span>;
+        }
+        <span class="pl-k">return</span> <span class="pl-s1">data</span>;
+    }
+
+    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-smi">void</span> <span class="pl-en">main</span>(<span class="pl-smi">String</span>[] <span class="pl-s1">args</span>) <span class="pl-k">throws</span> <span class="pl-smi">Exception</span> {
+        <span class="pl-smi">EncryptClassLoader</span> <span class="pl-s1">loader</span> = <span class="pl-k">new</span> <span class="pl-smi">EncryptClassLoader</span>(<span class="pl-s">"D:/encrypted_classes"</span>);
+        <span class="pl-smi">Class</span>&lt;?&gt; <span class="pl-s1">clazz</span> = <span class="pl-s1">loader</span>.<span class="pl-en">loadClass</span>(<span class="pl-s">"com.example.EncryptedUser"</span>);
+        <span class="pl-smi">Object</span> <span class="pl-s1">obj</span> = <span class="pl-s1">clazz</span>.<span class="pl-en">newInstance</span>();
+        <span class="pl-smi">System</span>.<span class="pl-s1">out</span>.<span class="pl-en">println</span>(<span class="pl-s">"Loaded by: "</span> + <span class="pl-s1">obj</span>.<span class="pl-en">getClass</span>().<span class="pl-en">getClassLoader</span>());
+    }
+}</pre></div>
+<h2>二、JVM 运行时数据区域</h2>
+<h3>1. 内存结构总览</h3>
+<p>JVM 内存分为 5 大区域，其中 <strong>堆（Heap）</strong> 和 <strong>方法区（元空间）</strong> 是所有线程共享的，其他为线程私有。</p>
+<h4>（1）核心区域详解</h4>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>区域</th>
+<th>作用</th>
+<th>常见异常</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>程序计数器</strong></td>
+<td>记录当前线程执行的字节码行号（线程私有，唯一无 OOM 的区域）</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>Java 虚拟机栈</strong></td>
+<td>存储栈帧（局部变量表、操作数栈、动态链接、方法出口）（线程私有）</td>
+<td><code class="notranslate">StackOverflowError</code>（栈深度溢出）</td>
+</tr>
+<tr>
+<td><strong>本地方法栈</strong></td>
+<td>为本地方法（如 <code class="notranslate">native</code> 方法）提供栈空间（线程私有）</td>
+<td><code class="notranslate">StackOverflowError</code></td>
+</tr>
+<tr>
+<td><strong>堆（Heap）</strong></td>
+<td>存储对象实例和数组（JVM 最大内存区域，垃圾回收主战场）</td>
+<td><code class="notranslate">OutOfMemoryError: Java heap space</code></td>
+</tr>
+<tr>
+<td><strong>方法区（元空间）</strong></td>
+<td>存储类元信息（如 <code class="notranslate">Class</code> 对象）、静态变量、常量池（JDK 8 后使用元空间，基于本地内存）</td>
+<td><code class="notranslate">OutOfMemoryError: Metaspace</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 对象的内存分配流程（流程图）</h3>
+<div class="highlight highlight-source-mermaid"><pre class="notranslate"><span class="pl-k">graph</span> <span class="pl-c1">TD</span>
+    <span class="pl-ent">A</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>新建对象<span class="pl-pds"><span class="pl-sg">]</span></span></span> <span class="pl-k">--&gt;</span> <span class="pl-ent">B</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">{</span></span>是否满足栈上分配条件？<span class="pl-pds"><span class="pl-sg">}</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">是</span><span class="pl-k">|</span> <span class="pl-ent">C</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>栈上分配（随栈帧弹出自动回收）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">B</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">否</span><span class="pl-k">|</span> <span class="pl-ent">D</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">{</span></span>是否使用 TLAB？<span class="pl-pds"><span class="pl-sg">}</span></span></span>
+    <span class="pl-ent">D</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">是</span><span class="pl-k">|</span> <span class="pl-ent">E</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>TLAB（线程本地分配缓冲区）分配<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">D</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">否</span><span class="pl-k">|</span> <span class="pl-ent">F</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Eden 区分配<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">F</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">Eden 满</span><span class="pl-k">|</span> <span class="pl-ent">G</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>触发 Minor GC（复制算法）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">G</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">存活对象</span><span class="pl-k">|</span> <span class="pl-ent">H</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>Survivor 区（S0/S1）<span class="pl-pds"><span class="pl-sg">]</span></span></span>
+    <span class="pl-ent">H</span> <span class="pl-k">--&gt;</span><span class="pl-k">|</span><span class="pl-s">多次 GC 存活（默认 15 次）</span><span class="pl-k">|</span> <span class="pl-ent">I</span><span class="pl-s"><span class="pl-pds"><span class="pl-sg">[</span></span>老年代（Tenured）<span class="pl-pds"><span class="pl-sg">]</span></span></span></pre></div>
+<p><strong>关键概念</strong>：</p>
+<ul>
+<li><strong>栈上分配</strong>：小对象（如 <code class="notranslate">new int[2]</code>）直接在栈上分配，避免 GC；</li>
+<li><strong>TLAB</strong>（Thread-Local Allocation Buffer）：线程私有缓存区，减少多线程分配锁竞争；</li>
+<li><strong>分代收集</strong>：新生代（Eden+Survivor）用复制算法，老年代用标记-整理算法。</li>
+</ul>
+<h3>3. 延迟加载（Lazy Loading）</h3>
+<p><strong>定义</strong>：类仅在首次使用时加载，避免内存浪费。</p>
+<h4>（1）触发类初始化的 5 种场景</h4>
+<ul>
+<li>创建类的实例（<code class="notranslate">new User()</code>）；</li>
+<li>调用类的静态方法（<code class="notranslate">User.staticMethod()</code>）；</li>
+<li>访问类的静态变量（<code class="notranslate">User.staticVar</code>）；</li>
+<li>反射调用类（<code class="notranslate">Class.forName("User")</code>）；</li>
+<li>初始化子类时，父类需先初始化（如 <code class="notranslate">class Sub extends Parent</code>，初始化 <code class="notranslate">Sub</code> 前先初始化 <code class="notranslate">Parent</code>）。</li>
+</ul>
+<h2>三、垃圾回收（GC）核心流程</h2>
+<h3>1. 垃圾判定算法</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>算法</th>
+<th>原理</th>
+<th>优点/缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>引用计数法</strong></td>
+<td>为对象添加引用计数器，引用为 0 时回收</td>
+<td>无法解决循环引用（如 A→B，B→A），已被 Java 弃用</td>
+</tr>
+<tr>
+<td><strong>可达性分析</strong></td>
+<td>从 GC Roots（如栈变量、静态变量、本地方法栈对象）出发，标记不可达对象为垃圾</td>
+<td>能处理循环引用，Java 主流实现（通过 <code class="notranslate">OopMap</code> 快速定位 GC Roots）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 垃圾收集算法与适用区域</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>算法</th>
+<th>适用区域</th>
+<th>核心逻辑</th>
+<th>典型收集器</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>复制算法</strong></td>
+<td>新生代（Eden+Survivor）</td>
+<td>将存活对象复制到空 Survivor 区，清空原区域</td>
+<td>Serial、Parallel Scavenge</td>
+</tr>
+<tr>
+<td><strong>标记-清除</strong></td>
+<td>老年代</td>
+<td>标记存活对象→清除未标记对象（产生内存碎片）</td>
+<td>CMS（并发标记清除）</td>
+</tr>
+<tr>
+<td><strong>标记-整理</strong></td>
+<td>老年代</td>
+<td>标记存活对象→将存活对象向一端移动→清除边界外内存（无碎片）</td>
+<td>Serial Old、Parallel Old</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>3. GC 类型与触发条件</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>GC 类型</th>
+<th>触发条件</th>
+<th>回收区域</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Minor GC</strong></td>
+<td>Eden 区满，无法分配新对象</td>
+<td>新生代（Eden+Survivor）</td>
+</tr>
+<tr>
+<td><strong>Major GC</strong></td>
+<td>老年代空间不足（或 CMS 并发失败）</td>
+<td>老年代</td>
+</tr>
+<tr>
+<td><strong>Full GC</strong></td>
+<td>Minor GC 后存活对象无法存入 Survivor/老年代；调用 <code class="notranslate">System.gc()</code>；元空间满</td>
+<td>新生代+老年代+元空间</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>4. G1 收集器完整流程</h3>
+<p>G1（Garbage-First）是 JDK 9+ 默认收集器，采用 <strong>Region 分区</strong> + <strong>增量收集</strong> 策略</p>
+<h2>四、JVM 常用参数与调优</h2>
+<h3>1. 内存分配参数（必记）</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+<th>示例配置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">-Xms</code></td>
+<td>堆初始大小（等价于 <code class="notranslate">-XX:InitialHeapSize</code>）</td>
+<td><code class="notranslate">-Xms2G</code>（堆初始 2GB）</td>
+</tr>
+<tr>
+<td><code class="notranslate">-Xmx</code></td>
+<td>堆最大大小（等价于 <code class="notranslate">-XX:MaxHeapSize</code>）</td>
+<td><code class="notranslate">-Xmx4G</code>（堆最大 4GB）</td>
+</tr>
+<tr>
+<td><code class="notranslate">-Xmn</code></td>
+<td>新生代大小（建议为堆的 1/3~1/4）</td>
+<td><code class="notranslate">-Xmn1G</code>（新生代 1GB）</td>
+</tr>
+<tr>
+<td><code class="notranslate">-XX:MetaspaceSize</code></td>
+<td>元空间初始大小（JDK 8+，替代永久代 <code class="notranslate">-XX:PermSize</code>）</td>
+<td><code class="notranslate">-XX:MetaspaceSize=256M</code></td>
+</tr>
+<tr>
+<td><code class="notranslate">-XX:MaxMetaspaceSize</code></td>
+<td>元空间最大大小（默认无限制，受系统内存限制）</td>
+<td><code class="notranslate">-XX:MaxMetaspaceSize=512M</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>2. 垃圾收集器参数</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+<th>示例配置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">-XX:+UseSerialGC</code></td>
+<td>新生代/老年代均用 Serial 收集器（单线程，STW 长）</td>
+<td>客户端模式（如桌面应用）</td>
+</tr>
+<tr>
+<td><code class="notranslate">-XX:+UseParallelGC</code></td>
+<td>新生代用 Parallel Scavenge，老年代用 Parallel Old（吞吐量优先）</td>
+<td>服务器模式（JDK 8 默认）</td>
+</tr>
+<tr>
+<td><code class="notranslate">-XX:+UseConcMarkSweepGC</code></td>
+<td>新生代用 ParNew，老年代用 CMS（低延迟，可能产生内存碎片）</td>
+<td>响应敏感场景（如 Web 服务）</td>
+</tr>
+<tr>
+<td><code class="notranslate">-XX:+UseG1GC</code></td>
+<td>使用 G1 收集器（大内存、低延迟，JDK 9+ 默认）</td>
+<td><code class="notranslate">-XX:MaxGCPauseMillis=200</code>（设置最大停顿时间）</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h3>3. 日志与调试参数</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+<th>示例输出</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">-XX:+PrintGCDetails</code></td>
+<td>打印 GC 详细日志（包括 GC 前/后内存、耗时）</td>
+<td><code class="notranslate">[GC (Allocation Failure) 1024M-&gt;512M(2048M), 0.012s]</code></td>
+</tr>
+<tr>
+<td><code class="notranslate">-XX:+PrintGCTimeStamps</code></td>
+<td>打印 GC 时间戳（相对于 JVM 启动时间）</td>
+<td><code class="notranslate">[GC (0.437s) 512M-&gt;256M(1024M)]</code></td>
+</tr>
+<tr>
+<td><code class="notranslate">-XX:+HeapDumpOnOutOfMemoryError</code></td>
+<td>OOM 时生成堆转储文件（<code class="notranslate">java_pid&lt;pid&gt;.hprof</code>）</td>
+<td><code class="notranslate">-XX:HeapDumpPath=/data/dump</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<h2>五、高频面试问题总结</h2>
+<h3>1. 双亲委派的作用与缺点？</h3>
+<ul>
+<li><strong>作用</strong>：避免类的重复加载，防止核心类被篡改（如自定义 <code class="notranslate">java.lang.String</code> 会被父类加载器拒绝）；</li>
+<li><strong>缺点</strong>：无法满足热部署、模块化等需求（需自定义类加载器打破双亲委派）。</li>
+</ul>
+<h3>2. 如何判断对象是否存活？</h3>
+<ul>
+<li><strong>可达性分析</strong>：从 GC Roots（栈变量、静态变量、本地方法栈对象）出发，通过引用链标记存活对象；</li>
+<li><strong>引用类型</strong>：强引用（存活）、软引用（内存不足时回收）、弱引用（GC 时回收）、虚引用（仅跟踪 GC 状态）。</li>
+</ul>
+<h3>3. 为什么分代收集？</h3>
+<ul>
+<li>基于弱分代假说（大部分对象短期存活）和强分代假说（长期存活对象少），对不同代采用不同收集算法（新生代用复制，老年代用标记-整理），提升 GC 效率。</li>
+</ul>
+<h3>4. 常见 OOM 场景与解决？</h3>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>OOM 类型</th>
+<th>原因</th>
+<th>解决方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">Java heap space</code></td>
+<td>堆内存不足（如对象未及时回收）</td>
+<td>增大 <code class="notranslate">-Xmx</code>，优化对象生命周期</td>
+</tr>
+<tr>
+<td><code class="notranslate">Metaspace</code></td>
+<td>元空间不足（如动态生成大量类）</td>
+<td>增大 <code class="notranslate">-XX:MaxMetaspaceSize</code>，清理无用类</td>
+</tr>
+<tr>
+<td><code class="notranslate">StackOverflowError</code></td>
+<td>栈深度过大（如递归无终止条件）</td>
+<td>增大 <code class="notranslate">-Xss</code>（线程栈大小），优化递归逻辑</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>通过本文的梳理，可系统掌握 JVM 类加载、内存管理、垃圾回收的核心原理及面试高频问题，结合 JVM 参数调优实践，能有效应对分布式系统性能优化、故障排查等场景的技术提问。</p></div>
+<div style="font-size:small;margin-top:8px;float:right;"></div>
+
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+
+</div>
+    <div id="footer"><div id="footer1">Copyright © <span id="copyrightYear"></span> <a href="https://TubroCoder.github.io/blog">Tubro‘s blog</a></div>
+<div id="footer2">
+    <span id="runday"></span><span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a></span>
+</div>
+
+<script>
+var now=new Date();
+document.getElementById("copyrightYear").innerHTML=now.getFullYear();
+
+if(""!=""){
+    var startSite=new Date("");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+}
+</script></div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z', 'copy': 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z', 'check': 'M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","TubroCoder/blog");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const createClipboardHTML = (codeContent, additionalClasses = '') => `
+        <pre class="notranslate"><code class="notranslate">${codeContent}</code></pre>
+        <div class="clipboard-container position-absolute right-0 top-0 ${additionalClasses}">
+            <clipboard-copy class="ClipboardButton btn m-2 p-0" role="button" style="display: inherit;">
+                <svg height="16" width="16" class="octicon octicon-copy m-2"><path d="${IconList["copy"]}"></path></svg>
+                <svg height="16" width="16" class="octicon octicon-check color-fg-success m-2 d-none"><path d="${IconList["check"]}"></path></svg>
+            </clipboard-copy>
+            <div class="copy-feedback">Copied!</div>
+        </div>
+    `;
+
+    const handleCodeElements = (selector = '') => {
+        document.querySelectorAll(selector).forEach(codeElement => {
+            const codeContent = codeElement.innerHTML;
+            const newStructure = document.createElement('div');
+            newStructure.className = 'snippet-clipboard-content position-relative overflow-auto';
+            newStructure.innerHTML = createClipboardHTML(codeContent);
+
+            const parentElement = codeElement.parentElement;
+            if (selector.includes('highlight')) {
+                parentElement.insertBefore(newStructure, codeElement.nextSibling);
+                parentElement.removeChild(codeElement);
+            } else {
+                parentElement.parentElement.replaceChild(newStructure, parentElement);
+            }
+        });
+    };
+
+    handleCodeElements('pre.notranslate > code.notranslate');
+    handleCodeElements('div.highlight > pre.notranslate');
+
+    let currentFeedback = null;
+    document.querySelectorAll('clipboard-copy').forEach(copyButton => {
+        copyButton.addEventListener('click', () => {
+            const codeContent = copyButton.closest('.snippet-clipboard-content').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const copyIcon = copyButton.querySelector('.octicon-copy');
+            const checkIcon = copyButton.querySelector('.octicon-check');
+            const copyFeedback = copyButton.nextElementSibling;
+
+            if (currentFeedback && currentFeedback !== copyFeedback) {currentFeedback.style.display = 'none';}
+            currentFeedback = copyFeedback;
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copyFeedback.style.display = 'block';
+            copyButton.style.borderColor = 'var(--color-success-fg)';
+
+            setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyFeedback.style.display = 'none';
+                copyButton.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
+
+</script>
+
+
+</html>

@@ -1,5 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 10:55:32 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-docker</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--docker.html</link><description>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>Tubro‘s blog</title><link>https://TubroCoder.github.io/blog</link><description>童话是一种生活态度，仅此而已。</description><copyright>Tubro‘s blog</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.com/TubroCoder/blog/blob/main/image.png?raw=true</url><title>avatar</title><link>https://TubroCoder.github.io/blog</link></image><lastBuildDate>Fri, 30 May 2025 11:03:36 +0000</lastBuildDate><managingEditor>Tubro‘s blog</managingEditor><ttl>60</ttl><webMaster>Tubro‘s blog</webMaster><item><title>求职面试笔记-JVM相关</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--JVM-xiang-guan.html</link><description>
+# JVM 核心面试知识点笔记  
+
+
+## 一、类加载机制与类加载器  
+
+
+### 1. 类加载的生命周期  
+类从被加载到内存到卸载的完整过程分为 **加载→连接→初始化→使用→卸载** 5 个阶段，其中连接阶段包含验证、准备、解析三个子阶段。</description><guid isPermaLink="true">https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--JVM-xiang-guan.html</guid><pubDate>Fri, 30 May 2025 11:03:09 +0000</pubDate></item><item><title>求职面试笔记-docker</title><link>https://TubroCoder.github.io/blog/post/qiu-zhi-mian-shi-bi-ji--docker.html</link><description>
 # Docker 核心面试知识点笔记  
 
 
